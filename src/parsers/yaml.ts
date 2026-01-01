@@ -1,6 +1,5 @@
-import YAML from 'js-yaml'
+import { load as yamlLoad, dump as yamlDump } from 'js-yaml'
 import YamlLex from 'yaml'
-import _ from 'lodash'
 import { Parser } from './base'
 import { KeyInDocument, Config } from '~/core'
 
@@ -12,12 +11,12 @@ export class YamlParser extends Parser {
   }
 
   async parse(text: string) {
-    return YAML.load(text, Config.parserOptions?.yaml?.load) as Object
+    return yamlLoad(text, Config.parserOptions?.yaml?.load) as Object
   }
 
   async dump(object: object, sort: boolean, compare: ((x: string, y: string) => number) | undefined) {
     object = JSON.parse(JSON.stringify(object))
-    return YAML.dump(object, {
+    return yamlDump(object, {
       indent: this.options.indent,
       sortKeys: sort ? (compare ?? true) : false,
       ...Config.parserOptions?.yaml?.dump,
@@ -36,8 +35,7 @@ export class YamlParser extends Parser {
       if (!node)
         return []
       if (node.type === 'MAP' || node.type === 'SEQ')
-      // @ts-ignore
-        return _.flatMap(node.items, m => findPairs(m, path))
+        return node.items.flatMap((m: any) => findPairs(m, path))
       if (node.type === 'PAIR' && node.value != null && node.key != null) {
         if (!['BLOCK_FOLDED', 'BLOCK_LITERAL', 'PLAIN', 'QUOTE_DOUBLE', 'QUOTE_SINGLE'].includes(node.value.type)) {
           return findPairs(node.value, [...path, node.key.toString()])

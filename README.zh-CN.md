@@ -107,8 +107,6 @@
 
 本插件最初来源于 [think2011/vscode-vue-i18n](https://github.com/think2011/vscode-vue-i18n)，非常感谢 [@think2011](https://github.com/think2011) 的启发。
 
-Vue SFC 的支持来自于 vue-i18n 的作者 [kazupon](https://github.com/kazupon) 的 [kazupon/vue-i18n-locale-message](https://github.com/kazupon/vue-i18n-locale-message)。感谢提供的帮助!
-
 同时也十分感谢所有这些很棒的 [贡献者](https://github.com/lokalise/i18n-ally/graphs/contributors) 和看到这里的你。
 
 

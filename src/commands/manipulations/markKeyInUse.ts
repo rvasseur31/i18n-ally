@@ -1,6 +1,6 @@
-import { uniq } from 'lodash'
 import { LocaleTreeItem } from '~/views'
 import { Config } from '~/core'
+import { uniq } from '~/utils'
 
 export async function markKeyInUse(item?: LocaleTreeItem) {
   if (!item)

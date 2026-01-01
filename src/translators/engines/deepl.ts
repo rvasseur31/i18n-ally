@@ -1,4 +1,3 @@
-import axios from 'axios'
 import qs from 'qs'
 
 import TranslateEngine, { TranslateOptions, TranslateResult } from './base'
@@ -19,33 +18,6 @@ interface DeepLTranslateRes {
   translations: DeepLTranslate[]
 }
 
-const deepl = axios.create({})
-
-deepl.interceptors.request.use((req) => {
-  req.baseURL = Config.deeplUseFreeApiEntry
-    ? 'https://api-free.deepl.com/v2'
-    : 'https://api.deepl.com/v2'
-
-  req.params = {
-    auth_key: Config.deeplApiKey,
-  }
-
-  if (req.method === 'POST' || req.method === 'post') {
-    req.headers['Content-Type'] = 'application/x-www-form-urlencoded'
-    req.data = qs.stringify(req.data)
-  }
-
-  log(true, req)
-
-  return req
-})
-
-deepl.interceptors.response.use((res) => {
-  log(true, res)
-
-  return res
-})
-
 function log(inspector: boolean, ...args: any[]): void {
   if (Config.deeplLog) {
     // eslint-disable-next-line no-console
@@ -54,9 +26,58 @@ function log(inspector: boolean, ...args: any[]): void {
   }
 }
 
-async function usage(): Promise<DeepLUsage> {
+async function fetchDeepl<T>(url: string, options: RequestInit & { data?: any } = {}) {
+  const baseURL = Config.deeplUseFreeApiEntry
+    ? 'https://api-free.deepl.com/v2'
+    : 'https://api.deepl.com/v2'
+
+  const fullUrl = new URL(url.startsWith('/') ? url.slice(1) : url, `${baseURL}/`)
+
+  if (Config.deeplApiKey)
+    fullUrl.searchParams.append('auth_key', Config.deeplApiKey)
+
+  const method = options.method || 'GET'
+  const headers = new Headers(options.headers)
+
+  let body: string | undefined
+
+  if (method.toUpperCase() === 'POST') {
+    headers.append('Content-Type', 'application/x-www-form-urlencoded')
+    if (options.data)
+      body = qs.stringify(options.data)
+  }
+
+  log(true, {
+    url: fullUrl.toString(),
+    method,
+    headers: Object.fromEntries(headers.entries()),
+    data: options.data,
+    params: { auth_key: Config.deeplApiKey },
+  })
+
+  const response = await fetch(fullUrl.toString(), {
+    method,
+    headers,
+    body,
+  })
+
+  const resData = await response.json() as T
+
+  log(true, {
+    status: response.status,
+    statusText: response.statusText,
+    data: resData,
+  })
+
+  if (!response.ok)
+    throw new Error(`DeepL API Error: ${response.status} ${response.statusText}`)
+
+  return resData
+}
+
+export async function usage(): Promise<DeepLUsage> {
   try {
-    return await deepl.get('/usage').then(({ data }) => data)
+    return fetchDeepl('/usage')
   }
   catch (err) {
     log(false, err)
@@ -74,18 +95,17 @@ function stripeLocaleCode(locale?: string): string | undefined {
   return locale.slice(0, index)
 }
 
-class DeepL extends TranslateEngine {
+export class DeepLTranslateEngine extends TranslateEngine {
   async translate(options: TranslateOptions) {
     try {
-      const res: DeepLTranslateRes = await deepl({
+      const res: DeepLTranslateRes = await fetchDeepl('/translate', {
         method: 'POST',
-        url: '/translate',
         data: {
           text: options.text,
           source_lang: stripeLocaleCode(options.from || undefined),
           target_lang: stripeLocaleCode(options.to),
         },
-      }).then(({ data }) => data)
+      })
 
       return this.transform(res.translations, options)
     }
@@ -120,10 +140,4 @@ class DeepL extends TranslateEngine {
 
     return r
   }
-}
-
-export default DeepL
-
-export {
-  usage,
 }

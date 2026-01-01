@@ -1,8 +1,7 @@
-import { sortBy } from 'lodash'
 import { QUOTE_SYMBOLS } from '../meta'
 import { KeyInDocument, RewriteKeyContext } from '../core/types'
 import { ScopeRange } from '../frameworks/base'
-import { Log } from '.'
+import { Log, sortBy } from '.'
 import i18n from '~/i18n'
 import { CurrentFile, Config } from '~/core'
 
@@ -80,7 +79,7 @@ export function regexFindKeys(
     }
   }
 
-  return sortBy(keys, i => i.start)
+  return keys.sort(sortBy('start'))
 }
 
 export function normalizeUsageMatchRegex(reg: (string | RegExp)[]): RegExp[] {

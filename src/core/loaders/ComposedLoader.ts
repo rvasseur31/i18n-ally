@@ -1,13 +1,11 @@
 import { Disposable } from 'vscode'
-import _ from 'lodash'
-import { uniq } from '@antfu/utils'
 import { PendingWrite } from '../types'
 import { Translator } from '../Translator'
 import { Config } from '../Config'
 import { FulfillAllMissingKeys } from '../../commands/manipulations'
 import { LocaleTree, LocaleNode, FlattenLocaleTree } from '../Nodes'
 import { Loader } from './Loader'
-import { Log } from '~/utils'
+import { Log, uniq } from '~/utils'
 
 export class ComposedLoader extends Loader {
   constructor() {
@@ -22,7 +20,7 @@ export class ComposedLoader extends Loader {
   _isFlattenLocaleTreeDirty = true
 
   get files() {
-    return _.flatten(this._loaders.map(l => l && l.files).filter(Boolean))
+    return this._loaders.flatMap(l => l?.files || [])
   }
 
   get loaders() {
@@ -71,10 +69,7 @@ export class ComposedLoader extends Loader {
   }
 
   get locales(): string[] {
-    return _(this._loaders)
-      .flatMap(l => l.locales)
-      .uniq()
-      .value()
+    return uniq(this._loaders.flatMap(l => l?.locales || []))
   }
 
   getNamespaceFromFilepath(filepath: string) {

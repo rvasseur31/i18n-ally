@@ -1,4 +1,3 @@
-import axios from 'axios'
 import TranslateEngine, { TranslateOptions, TranslateResult } from './base'
 import { Config } from '~/core'
 
@@ -25,12 +24,15 @@ export default class GoogleTranslate extends TranslateEngine {
       to: to === 'auto' || !to ? '' : `&target=${to}`,
     }
 
-    const { data } = await axios({
+    const url = key
+      ? `${this.apiRootIfUserSuppliedKey}/language/translate/v2?key=${key}&q=${encodeURI(options.text)}${slugs.from}${slugs.to}&alt=json&format=text`
+      : `${this.apiRoot}/translate_a/single?client=gtx&sl=${from}&tl=${to}&hl=zh-CN&dt=t&dt=bd&ie=UTF-8&oe=UTF-8&dj=1&source=icon&q=${encodeURI(options.text)}`
+
+    const response = await fetch(url, {
       method: 'GET',
-      url: key
-        ? `${this.apiRootIfUserSuppliedKey}/language/translate/v2?key=${key}&q=${encodeURI(options.text)}${slugs.from}${slugs.to}&alt=json&format=text`
-        : `${this.apiRoot}/translate_a/single?client=gtx&sl=${from}&tl=${to}&hl=zh-CN&dt=t&dt=bd&ie=UTF-8&oe=UTF-8&dj=1&source=icon&q=${encodeURI(options.text)}`,
     })
+
+    const data = await response.json()
 
     return this.transform(data, options, !!key)
   }

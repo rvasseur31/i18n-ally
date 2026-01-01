@@ -1,11 +1,12 @@
-import { workspace, Uri, TextDocument, WorkspaceEdit, Range } from 'vscode'
-import { squeeze, SFCI18nBlock, MetaLocaleMessage, infuse } from 'vue-i18n-locale-message'
-import { Log, applyPendingToObject, File, unflatten } from '~/utils'
+import * as path from 'path'
+import { workspace, Uri, WorkspaceEdit, Range } from 'vscode'
 import { PendingWrite, NodeOptions } from '../types'
 import { LocaleTree } from '../Nodes'
 import { Global } from '../Global'
 import { Config } from '../Config'
 import { Loader } from './Loader'
+import { parseVueSfc, writeVueSfc, SFCI18nBlock, MetaLocaleMessage } from './VueSfcParser'
+import { Log, applyPendingToObject, File, unflatten } from '~/utils'
 
 export class VueSfcLoader extends Loader {
   constructor(
@@ -31,8 +32,11 @@ export class VueSfcLoader extends Loader {
     const filepath = this.filepath
     Log.info(`📑 Loading sfc ${filepath}`)
     const doc = await workspace.openTextDocument(this.uri)
-    const meta = this._meta = squeeze(Global.rootpath, this.getSFCFileInfo(doc))
-    this._parsedSections = meta.components[filepath]
+
+    const content = doc.getText()
+    const blocks = parseVueSfc(content, filepath)
+    this._meta = { components: { [filepath]: blocks } }
+    this._parsedSections = blocks
 
     this.updateLocalesTree()
     this._onDidChange.fire(this.name)
@@ -40,7 +44,7 @@ export class VueSfcLoader extends Loader {
 
   private getOptions(section: SFCI18nBlock, locale: string, index: number): NodeOptions {
     return {
-      filepath: section.src || this.uri.fsPath,
+      filepath: section.src ? path.resolve(path.dirname(this.uri.fsPath), section.src) : this.uri.fsPath,
       locale: Config.normalizeLocale(locale),
       features: {
         VueSfc: true,
@@ -50,13 +54,6 @@ export class VueSfcLoader extends Loader {
         VueSfcLocale: locale,
       },
     }
-  }
-
-  private getSFCFileInfo(doc: TextDocument) {
-    return [{
-      path: this.filepath,
-      content: doc.getText(),
-    }]
   }
 
   _locales = new Set<string>()
@@ -110,16 +107,17 @@ export class VueSfcLoader extends Loader {
     }
 
     const doc = await workspace.openTextDocument(this.uri)
-    const [file] = infuse(Global.rootpath, this.getSFCFileInfo(doc), this._meta)
+    const content = doc.getText()
+    const newContent = writeVueSfc(content, this.filepath, this._parsedSections)
 
     if (doc.isDirty) {
       const edit = new WorkspaceEdit()
-      edit.replace(this.uri, new Range(doc.positionAt(0), doc.positionAt(Infinity)), file.content)
+      edit.replace(this.uri, new Range(doc.positionAt(0), doc.positionAt(Infinity)), newContent)
 
       await workspace.applyEdit(edit)
     }
     else {
-      await File.write(this.filepath, file.content)
+      await File.write(this.filepath, newContent)
     }
 
     await this.load()

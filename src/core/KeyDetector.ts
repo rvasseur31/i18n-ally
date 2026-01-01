@@ -55,11 +55,9 @@ export class KeyDetector {
     return keyRange?.key
   }
 
-  static getScopedKey(document: TextDocument, position: Position)
-  {
+  static getScopedKey(document: TextDocument, position: Position) {
     const scopes = Global.enabledFrameworks.flatMap(f => f.getScopeRange(document) || [])
-    if (scopes.length > 0)
-    {
+    if (scopes.length > 0) {
       const offset = document.offsetAt(position)
       return scopes.filter(s => s.start < offset && offset < s.end).map(s => s.namespace).join('.')
     }
@@ -67,7 +65,7 @@ export class KeyDetector {
 
   static getKeyAndRange(document: TextDocument, position: Position, dotEnding?: boolean) {
     const { range, key } = KeyDetector.getKeyRange(document, position, dotEnding) || {}
-    if (!range || !key)
+    if (!range || key === undefined)
       return
 
     const end = range.end.character - 1

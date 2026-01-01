@@ -1,12 +1,11 @@
 import fs from 'fs'
 import { workspace, Range, Location, TextDocument, Uri, EventEmitter } from 'vscode'
 import micromatch from 'micromatch'
-import _, { uniq } from 'lodash'
 import { Global } from './Global'
 import { CurrentFile } from './CurrentFile'
 import { UsageReport } from './types'
 import { KeyDetector, Config, KeyOccurrence, KeyUsage } from '.'
-import { Log } from '~/utils'
+import { Log, uniq } from '~/utils'
 import { gitignoredGlob } from '~/utils/glob'
 
 export class Analyst {
@@ -117,11 +116,12 @@ export class Analyst {
 
   static async analyzeUsage(useCache = true): Promise<UsageReport> {
     const occurrences = await this.getAllOccurrences(undefined, useCache)
-    const usages: KeyUsage[] = _(occurrences)
-      .groupBy('keypath')
-      .entries()
-      .map(([keypath, occurrences]) => ({ keypath, occurrences }))
-      .value()
+    const usages: KeyUsage[] = Object.values(occurrences.reduce((acc, occurrence) => {
+      if (!acc[occurrence.keypath])
+        acc[occurrence.keypath] = { keypath: occurrence.keypath, occurrences: [] }
+      acc[occurrence.keypath].occurrences.push(occurrence)
+      return acc
+    }, {} as Record<string, KeyUsage>))
 
     // all the keys you have
     const allKeys = CurrentFile.loader.keys.map(i => this.normalizeKey(i))

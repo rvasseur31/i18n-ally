@@ -17,9 +17,9 @@ jobs:
           git config --global core.eol lf
 
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: oven-sh/setup-bun@v1
         with:
-          node-version: 18
+          bun-version: latest
 
       # The vue I18next framework fixture tests rely on the documents getting recognized as `vue` documents by VSCode.
       # We set the `file.association` in the tests' .vscode/settings.json. However, `vue` is not a language identifier
@@ -46,28 +46,28 @@ jobs:
         shell: powershell
 
       - name: Install
-        run: yarn install --frozen-lockfile
+        run: bun install --frozen-lockfile
         env:
           CI: true
 
       - name: Build
-        run: yarn build
+        run: bun run build
         env:
           CI: true
 
       - name: Unit Tests
-        run: yarn test:unit
+        run: bun run test:unit
         env:
           CI: true
 
       - name: E2E Tests
-        run: yarn run test:e2e && yarn run test:fixture
+        run: bun run test:e2e && bun run test:fixture
         if: runner.os != 'Linux'
         env:
           CI: true
 
       - name: E2E Tests (Linux)
-        run: xvfb-run -a yarn run test:e2e && xvfb-run -a yarn run test:fixture
+        run: xvfb-run -a bun run test:e2e && xvfb-run -a bun run test:fixture
         if: runner.os == 'Linux'
         env:
           CI: true

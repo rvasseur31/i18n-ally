@@ -2,7 +2,6 @@ import { workspace } from 'vscode'
 import { PackageJSONParser, PubspecYAMLParser, ComposerJSONParser, GemfileParser } from '../packagesParsers'
 import { Framework, PackageFileType } from './base'
 import VueFramework from './vue'
-import FluentVueFramework from './fluent-vue'
 import ReactFramework from './react-intl'
 import I18nextFramework from './i18next'
 import ReactI18nextFramework from './react-i18next'
@@ -30,7 +29,6 @@ import PhpGettextFramework from './php-gettext'
 import GeneralFramework from './general'
 import LinguiFramework from './lingui'
 import JekyllFramework from './jekyll'
-import FluentVueSFCFramework from './fluent-vue-sfc'
 import i18n from '~/i18n'
 import { Log } from '~/utils'
 
@@ -54,7 +52,6 @@ export const frameworks: Framework[] = [
   new NextIntlFramework(),
   new NextInternationalFramework(),
   new I18nTagFramework(),
-  new FluentVueFramework(),
   new PhpJoomlaFramework(),
   new LaravelFramework(),
   new ChromeExtensionFramework(),
@@ -70,9 +67,8 @@ export const frameworks: Framework[] = [
   new JekyllFramework(),
   new GeneralFramework(),
 
-  // Vue SFC and FluentVue SFC should be the last ones
+  // Vue SFC should be the last one
   new VueSFCFramework(),
-  new FluentVueSFCFramework(),
 ]
 
 export function getFramework(id: string): Framework | undefined {

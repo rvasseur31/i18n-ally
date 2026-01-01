@@ -1,4 +1,3 @@
-import axios from 'axios'
 import TranslateEngine, { TranslateOptions, TranslateResult } from './base'
 import { Config } from '~/core'
 
@@ -15,19 +14,22 @@ export default class LibreTranslate extends TranslateEngine {
     if (Config.libreTranslateApiRoot)
       apiRoot = Config.libreTranslateApiRoot
 
-    const response = await axios.post(`${apiRoot}/translate`, {
-      q: options.text,
-      source: from,
-      target: to,
-      format: "html",
-    }, {
+    const response = await fetch(`${apiRoot}/translate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        q: options.text,
+        source: from,
+        target: to,
+        format: 'html',
+      }),
       headers: {
         'Content-Type': 'application/json',
       },
-    },
-    )
+    })
 
-    return this.transform(response, options)
+    const data = await response.json()
+
+    return this.transform(data, options)
   }
 
   transform(response: any, options: TranslateOptions): TranslateResult {
@@ -41,7 +43,7 @@ export default class LibreTranslate extends TranslateEngine {
       to,
       from: response.src,
       response,
-      result: [response.data.translatedText],
+      result: [response.translatedText],
       linkToResult: '',
     }
 

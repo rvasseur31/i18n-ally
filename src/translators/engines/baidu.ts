@@ -1,5 +1,4 @@
-import crypto from 'crypto'
-import axios from 'axios'
+import { createHash } from 'crypto'
 import qs from 'qs'
 import TranslateEngine, { TranslateOptions, TranslateResult } from './base'
 import { Config } from '~/core'
@@ -35,10 +34,11 @@ export default class BaiduTranslate extends TranslateEngine {
       sign,
     }
 
-    const { data } = await axios({
+    const response = await fetch(`${this.apiRoot}/api/trans/vip/translate?${qs.stringify(form)}`, {
       method: 'GET',
-      url: `${this.apiRoot}/api/trans/vip/translate?${qs.stringify(form)}`,
     })
+
+    const data = await response.json()
 
     return this.transform(data, options)
   }
@@ -50,9 +50,7 @@ export default class BaiduTranslate extends TranslateEngine {
   getSign({ appid, salt, query, secret }: BaiduSignOptions): string {
     if (appid && salt) {
       const string = appid + query + salt + secret
-      const md5 = crypto.createHash('md5')
-      md5.update(string)
-      return md5.digest('hex')
+      return createHash('md5').update(string).digest('hex')
     }
     return ''
   }

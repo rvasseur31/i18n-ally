@@ -102,8 +102,24 @@ export function abbreviateNumber(value: number): string {
  */
 export function getLocaleCompare(
   sortLocaleSetting: string | undefined,
-  fileLocale: string
+  fileLocale: string,
 ): (x: string, y: string) => number {
-  const sortLocale = sortLocaleSetting ? sortLocaleSetting : fileLocale;
-  return new Intl.Collator(sortLocale).compare;
+  const sortLocale = sortLocaleSetting || fileLocale
+  return new Intl.Collator(sortLocale).compare
+}
+
+export function notNullish<T>(v: T | null | undefined): v is NonNullable<T> {
+  return v != null
+}
+
+export function slash(str: string) {
+  return str.replace(/\\/g, '/')
+}
+
+export function uniq<T>(array: T[]): T[] {
+  return Array.from(new Set(array))
+}
+
+export function sortBy<T>(key: keyof T) {
+  return (a: T, b: T) => (a[key] > b[key]) ? 1 : ((b[key] > a[key]) ? -1 : 0)
 }

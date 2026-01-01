@@ -1,7 +1,6 @@
 import path from 'path'
 import { execSync } from 'child_process'
 import { workspace, extensions, ExtensionContext, commands, ConfigurationScope, WorkspaceFolder } from 'vscode'
-import { trimEnd, uniq } from 'lodash'
 import { TagSystems } from '../tagSystems'
 import { EXT_NAMESPACE, EXT_ID, EXT_LEGACY_NAMESPACE, KEY_REG_DEFAULT, KEY_REG_ALL, DEFAULT_LOCALE_COUNTRY_MAP } from '../meta'
 import { KeyStyle, DirStructureAuto, SortCompare, TargetPickingStrategy } from '.'
@@ -9,6 +8,7 @@ import i18n from '~/i18n'
 import { CaseStyles } from '~/utils/changeCase'
 import { ExtractionBabelOptions, ExtractionHTMLOptions } from '~/extraction/parsers/options'
 import { resolveRefactorTemplate } from '~/utils/resolveRefactorTemplate'
+import { uniq } from '~/utils'
 
 export class Config {
   static readonly reloadConfigs = [
@@ -180,7 +180,7 @@ export class Config {
     return this.getConfig<SortCompare>('sortCompare') || 'binary'
   }
 
-  static get sortLocale(): string | undefined{
+  static get sortLocale(): string | undefined {
     return this.getConfig<string>('sortLocale')
   }
 
@@ -277,7 +277,7 @@ export class Config {
       localesPaths = paths
     if (!localesPaths)
       return
-    return localesPaths.map(i => trimEnd(i, '/\\').replace(/\\/g, '/'))
+    return localesPaths.map(i => i.replace(/[/\\]+$/, '').replace(/\\/g, '/'))
   }
 
   static set _localesPaths(paths: string[] | undefined) {
@@ -296,7 +296,7 @@ export class Config {
       localesPaths = paths
     if (!localesPaths)
       return
-    return localesPaths.map(i => trimEnd(i, '/\\').replace(/\\/g, '/'))
+    return localesPaths.map(i => i.replace(/[/\\]+$/, '').replace(/\\/g, '/'))
   }
 
   static updateLocalesPaths(paths: string[]) {

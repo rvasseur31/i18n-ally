@@ -1,7 +1,7 @@
-import fs from 'fs-extra'
+import { write } from 'bun'
 
 async function run() {
-  await fs.writeFile('dist/extension.d.ts', 'export * from \'./src/extension\'')
+  await write('dist/extension.d.ts', 'export * from \'./src/extension\'')
 }
 
 run()

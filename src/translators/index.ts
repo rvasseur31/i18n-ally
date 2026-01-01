@@ -1,7 +1,7 @@
 import TranslateEngine, { TranslateOptions } from './engines/base'
 import GoogleTranslateEngine from './engines/google'
 import GoogleTranslateCnEngine from './engines/google-cn'
-import DeepLTranslateEngine from './engines/deepl'
+import {DeepLTranslateEngine} from './engines/deepl'
 import LibreTranslateEngine from './engines/libretranslate'
 import BaiduTranslate from './engines/baidu'
 import OpenAITranslateEngine from './engines/openai'

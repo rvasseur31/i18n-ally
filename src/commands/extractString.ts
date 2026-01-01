@@ -1,6 +1,5 @@
 import { relative } from 'path'
 import { commands, window, QuickPickItem, Range, TextDocument } from 'vscode'
-import { trim } from 'lodash'
 import { overrideConfirm } from './overrideConfirm'
 import { Commands } from './commands'
 import { keypathValidate, Log, promptTemplates } from '~/utils'
@@ -42,7 +41,7 @@ async function ExtractOrInsertCommnad(options?: ExtractTextOptions, detection?: 
 
     options = {
       text: '',
-      rawText: trim(currentDoc.getText(editor.selection), '\'"` '),
+      rawText: currentDoc.getText(editor.selection).replace(/^['"` ]+|['"` ]+$/g, ''),
       range: editor.selection,
       document: currentDoc,
       isInsert: editor.selection.start.isEqual(editor.selection.end),

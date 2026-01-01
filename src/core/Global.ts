@@ -1,7 +1,5 @@
 import { extname, resolve } from 'path'
 import { workspace, commands, window, EventEmitter, Event, ExtensionContext, ConfigurationChangeEvent, TextDocument, WorkspaceFolder } from 'vscode'
-import { uniq } from 'lodash'
-import { slash } from '@antfu/utils'
 import { isMatch } from 'micromatch'
 import { ParsePathMatcher } from '../utils/PathMatcher'
 import { EXT_NAMESPACE } from '../meta'
@@ -18,7 +16,7 @@ import { LocaleLoader } from './loaders/LocaleLoader'
 import { Analyst } from './Analyst'
 import { Telemetry, TelemetryKey } from './Telemetry'
 import i18n from '~/i18n'
-import { Log, getExtOfLanguageId, normalizeUsageMatchRegex } from '~/utils'
+import { Log, getExtOfLanguageId, normalizeUsageMatchRegex, slash, uniq } from '~/utils'
 import { DetectionResult } from '~/core/types'
 
 export class Global {

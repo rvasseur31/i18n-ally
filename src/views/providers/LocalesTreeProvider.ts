@@ -1,5 +1,5 @@
 import { TreeItem, ExtensionContext, TreeDataProvider, EventEmitter, Event } from 'vscode'
-import { sortBy, throttle } from 'lodash'
+import throttle from 'lodash.throttle'
 import { LocaleTreeItem } from '../items/LocaleTreeItem'
 import { EditorPanel } from '../../webview/panel'
 import { THROTTLE_DELAY } from '../../meta'
@@ -80,7 +80,12 @@ export class LocalesTreeProvider implements TreeDataProvider<LocaleTreeItem> {
   }
 
   sort(elements: LocaleTreeItem[]) {
-    return sortBy(elements, 'node.type', 'node.keypath')
+    return elements.sort((a, b) => {
+      const diff = a.node.type.localeCompare(b.node.type)
+      if (diff !== 0)
+        return diff
+      return a.node.keypath.localeCompare(b.node.keypath)
+    })
   }
 
   async getChildren(element?: LocaleTreeItem) {

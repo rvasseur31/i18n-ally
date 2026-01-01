@@ -1,10 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Disposable, EventEmitter } from 'vscode'
-import { uniq, isObject } from 'lodash'
 import { LocaleTree, LocaleNode, LocaleRecord, FlattenLocaleTree } from '../Nodes'
 import { Coverage, FileInfo, PendingWrite, NodeOptions, RewriteKeySource, RewriteKeyContext, DataProcessContext } from '../types'
 import { Config, Global } from '..'
-import { resolveFlattenRootKeypath, resolveFlattenRoot, NodeHelper } from '~/utils'
+import { resolveFlattenRootKeypath, resolveFlattenRoot, NodeHelper, uniq, isObject } from '~/utils'
 
 const NESTED_PLURALIZATION_KEYS = ['one', 'other', 'zero', 'two', 'few', 'many']
 export abstract class Loader extends Disposable {
@@ -173,8 +172,18 @@ export abstract class Loader extends Disposable {
     const head = keys[0]
     const remaining = keys.slice(1).join('.')
     const node = tree.getChild(head)
-    if (remaining === '')
+    if (remaining === '') {
+      // If exact match not found, try to find pluralized keys in children
+      if (!node && tree.type === 'tree') {
+        const pluralKeys = NESTED_PLURALIZATION_KEYS.map(k => `${head}_${k}`)
+        for (const pk of pluralKeys) {
+          const pluralNode = tree.getChild(pk)
+          if (pluralNode)
+            return pluralNode
+        }
+      }
       return node
+    }
     if (node && node.type === 'tree')
       return this.getTreeNodeByKey(remaining, node)
 

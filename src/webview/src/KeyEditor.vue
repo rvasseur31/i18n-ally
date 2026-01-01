@@ -61,12 +61,12 @@
 </template>
 
 <script lang="js">
-import Vue from 'vue'
+import { defineComponent } from 'vue'
 import Flag from './Flag.vue'
 import RecordEditor from './RecordEditor.vue'
 import { vscode } from './api'
 
-export default Vue.extend({
+export default defineComponent({
   components: {
     Flag,
     RecordEditor,

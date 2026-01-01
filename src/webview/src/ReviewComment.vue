@@ -63,12 +63,11 @@
 </template>
 
 <script lang="js">
-import Vue from 'vue'
-import cloneDeep from 'lodash/cloneDeep'
+import { defineComponent } from 'vue'
 import Avatar from './Avatar.vue'
 import { vscode } from './api'
 
-export default Vue.extend({
+export default defineComponent({
   components: {
     Avatar,
   },
@@ -123,7 +122,7 @@ export default Vue.extend({
 
   methods: {
     resetForm() {
-      this.form = cloneDeep(this.comment)
+      this.form = structuredClone(this.comment)
     },
     resize(ta) {
       if (!ta)

@@ -143,8 +143,6 @@ This extension itself supports i18n as well. It will be auto-matched to the disp
 
 This extension was inspired by [think2011/vscode-vue-i18n](https://github.com/think2011/vscode-vue-i18n), it wouldn't exist without [@think2011](https://github.com/think2011)'s great work.
 
-Support for Vue Single File Component (SFC) is powered by [kazupon/vue-i18n-locale-message](https://github.com/kazupon/vue-i18n-locale-message), which is created by the author of vue-i18n. Thanks for making this!
-
 
 ### Code Contributors
 

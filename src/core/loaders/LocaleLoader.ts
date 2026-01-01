@@ -1,7 +1,7 @@
 import path from 'path'
 import { workspace, window, WorkspaceEdit, RelativePattern } from 'vscode'
 import fg from 'fast-glob'
-import _, { uniq, throttle, set } from 'lodash'
+import throttle from 'lodash.throttle'
 import fs from 'fs-extra'
 import { findBestMatch } from 'string-similarity'
 import { FILEWATCHER_TIMEOUT } from '../../meta'
@@ -11,7 +11,7 @@ import { AllyError, ErrorType } from '../Errors'
 import { Analyst, Global, Config } from '..'
 import { Telemetry, TelemetryKey } from '../Telemetry'
 import { Loader } from './Loader'
-import { ReplaceLocale, Log, applyPendingToObject, unflatten, NodeHelper, getCache, setCache, getLocaleCompare } from '~/utils'
+import { uniq, getValue, setValue, ReplaceLocale, Log, applyPendingToObject, unflatten, NodeHelper, getCache, setCache, getLocaleCompare } from '~/utils'
 import i18n from '~/i18n'
 
 const THROTTLE_DELAY = 1500
@@ -345,7 +345,7 @@ export class LocaleLoader extends Loader {
   }
 
   canHandleWrites(pending: PendingWrite) {
-    return !pending.features?.VueSfc && !pending.features?.FluentVueSfc
+    return !pending.features?.VueSfc
   }
 
   async renameKey(oldkey: string, newkey: string) {
@@ -368,7 +368,7 @@ export class LocaleLoader extends Loader {
     const writes = _(this._files)
       .entries()
       .flatMap(([filepath, file]) => {
-        const value = _.get(file.value, oldkey)
+        const value = getValue(file.value, oldkey)
         if (value === undefined)
           return []
         return [{
@@ -377,7 +377,7 @@ export class LocaleLoader extends Loader {
           filepath,
           locale: file.locale,
         }, {
-          value: _.get(file.value, oldkey),
+          value: getValue(file.value, oldkey),
           keypath: newkey,
           filepath,
           locale: file.locale,
@@ -590,7 +590,7 @@ export class LocaleLoader extends Loader {
         const files = this.files.filter(f => f.namespace === ns)
 
         for (const file of files) {
-          const value = ns ? set({}, ns, file.value) : file.value
+          const value = ns ? setValue({}, ns, file.value) : file.value
           this.updateTree(root, value, '', '', { ...file, meta: { namespace: file.namespace } })
         }
       }
