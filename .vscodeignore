@@ -22,8 +22,6 @@ stats.json
 .gitignore
 .gitattributes
 .editorconfig
-.eslintrc.js
-.eslintignore
 package-lock.json
 tsconfig.json
 tslint.json

@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    "baseUrl": ".",
     "target": "es2019",
     "lib": ["ESNext", "ESNext.AsyncIterable", "ESNext.Array"],
     "module": "esnext",
@@ -15,7 +14,7 @@
     "allowSyntheticDefaultImports": true,
     "noUnusedLocals": true,
     "paths": {
-      "~/*": ["src/*"]
+      "~/*": ["./src/*"]
     }
   },
   "include": [
