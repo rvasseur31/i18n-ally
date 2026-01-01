@@ -1,23 +1,31 @@
+const QUOTE_PLACEHOLDER = '\uE000'
+
 /**
  * 'foo' + bar() + ' is cool' -> `foo${bar()} is cool`
  */
 export function stringConcatenationToTemplate(text: string) {
-  text = text.trim()
-  if (!text.match(/^['"`]/)) text = `''+${text}`
-  if (!text.match(/['"`]$/)) text = `${text}+''`
+  let result = text.trim()
+  // Ensure the string starts and ends with quotes for consistent processing
+  if (!result.match(/^['"`]/))
+    result = `''+${result}`
+  if (!result.match(/['"`]$/))
+    result = `${result}+''`
 
-  // replace quotes with `\0`
-  text = text
-    .replace(/([^\\])(['"`])/g, '$1\u0000')
-    .replace(/([^\\])(['"`])/g, '$1\u0000')
-    .replace(/^(['"`])/g, '\u0000')
+  // Replace all unescaped quotes with a placeholder
+  // We run this twice to handle consecutive quotes (e.g. '') where the first pass consumes the preceding character
+  result = result
+    .replace(/([^\\])(['"`])/g, `$1${QUOTE_PLACEHOLDER}`)
+    .replace(/([^\\])(['"`])/g, `$1${QUOTE_PLACEHOLDER}`)
+    .replace(/^(['"`])/g, QUOTE_PLACEHOLDER)
 
-  // concatenation
-  text = text.replace(/0\s*\+\s*(.*?)\s*\+\s*0/g, (full, one) => `$\{${one.trim()}}`)
+  // Convert concatenation to template interpolation
+  // Matches: PLACEHOLDER ... + ... + PLACEHOLDER
+  const concatenationRegex = new RegExp(`${QUOTE_PLACEHOLDER}\\s*\\+\\s*(.*?)\\s*\\+\\s*${QUOTE_PLACEHOLDER}`, 'g')
+  result = result.replace(concatenationRegex, (_, content) => `$\{${content.trim()}}`)
 
-  // revert back quotes
-  text = text.replace(/0/g, '`')
-  return text
+  // Revert placeholders to backticks
+  result = result.replace(new RegExp(QUOTE_PLACEHOLDER, 'g'), '`')
+  return result
 }
 
 export function parseHardString(text = '', languageId?: string, isDynamic = false) {
