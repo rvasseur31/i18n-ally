@@ -16,7 +16,20 @@ class CompletionProvider implements CompletionItemProvider {
     const { key, range } = keyData
     const scopedKey = KeyDetector.getScopedKey(document, position)
 
-    let keys = loader.keys
+    const rules = Global.derivedKeyRules
+    let keys = loader.keys.reduce((acc, cur) => {
+      let normalized = cur
+      for (const r of rules) {
+        const match = r.exec(cur)
+        if (match && match[1]) {
+          normalized = match[1]
+          break
+        }
+      }
+
+      if (!acc.includes(normalized)) acc.push(normalized)
+      return acc
+    }, [] as string[])
 
     if (scopedKey) {
       keys = keys.filter(k => k.startsWith(`${scopedKey}.`)).map(k => k.slice(scopedKey.length + 1))
