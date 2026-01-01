@@ -22,29 +22,40 @@ class CompletionProvider implements CompletionItemProvider {
       keys = keys.filter(k => k.startsWith(`${scopedKey}.`)).map(k => k.slice(scopedKey.length + 1))
     }
 
-    if (!key) {
-      return keys.map(k => {
-        const item = new CompletionItem(k, CompletionItemKind.Value)
-        item.detail = loader.getValueByKey(scopedKey ? `${scopedKey}.${k}` : k)
-        item.range = range
-        return item
-      })
+    const candidates = keys.map(k => {
+      const value = loader.getValueByKey(scopedKey ? `${scopedKey}.${k}` : k)
+      return {
+        key: k,
+        value,
+      }
+    })
+
+    const toCompletionItem = (c: { key: string; value: any }) => {
+      const item = new CompletionItem(c.key, CompletionItemKind.Value)
+      item.detail = c.value
+      item.range = range
+      // Ensure VS Code's own filtering can match typed text (including searching by value).
+      item.filterText = `${c.key} ${String(c.value ?? '')}`
+      // Always insert the key, even if user typed part of the value.
+      item.insertText = c.key
+      return item
     }
 
-    const fuse = new Fuse(keys, {
+    if (!key) {
+      return candidates.map(toCompletionItem)
+    }
+
+    const fuse = new Fuse(candidates, {
       includeScore: true,
       threshold: 0.4,
+      keys: ['key', 'value'],
     })
+
+    
+
 
     const results = fuse.search(key)
-
-    return results.map(result => {
-      const k = result.item
-      const item = new CompletionItem(k, CompletionItemKind.Value)
-      item.detail = loader.getValueByKey(scopedKey ? `${scopedKey}.${k}` : k)
-      item.range = range
-      return item
-    })
+    return results.map(r => toCompletionItem(r.item))
   }
 }
 
