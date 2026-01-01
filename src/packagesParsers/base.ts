@@ -17,8 +17,7 @@ export abstract class PackageParser {
       const raw = this.loadFile(filepath)
       const data = this.parserRaw(raw)
       return data
-    }
-    catch (err) {
+    } catch {
       Log.info(`⚠ Error on parsing package file "${this.filename}"`)
     }
 
@@ -30,11 +29,7 @@ export abstract class PackageParser {
   }
 
   protected static parserRaw(raw: string) {
-    const {
-      dependencies = {},
-      devDependencies = {},
-      peerDependencies = {},
-    } = JSON.parse(raw)
+    const { dependencies = {}, devDependencies = {}, peerDependencies = {} } = JSON.parse(raw)
 
     return [...Object.keys(dependencies), ...Object.keys(devDependencies), ...Object.keys(peerDependencies)]
   }

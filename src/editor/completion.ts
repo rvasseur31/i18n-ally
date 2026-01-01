@@ -1,15 +1,11 @@
-import { CompletionItemProvider, TextDocument, Position, CompletionItem, CompletionItemKind, languages, Range } from 'vscode'
+import { CompletionItemProvider, TextDocument, Position, CompletionItem, CompletionItemKind, languages } from 'vscode'
 import Fuse from 'fuse.js'
 import { ExtensionModule } from '~/modules'
 import { Global, KeyDetector, Loader, CurrentFile } from '~/core'
 
 class CompletionProvider implements CompletionItemProvider {
-  public provideCompletionItems(
-    document: TextDocument,
-    position: Position,
-  ) {
-    if (!Global.enabled)
-      return
+  public provideCompletionItems(document: TextDocument, position: Position) {
+    if (!Global.enabled) return
 
     const loader: Loader = CurrentFile.loader
     // Pass false to dotEnding to allow fuzzy search on partial keys (e.g. "common.canc")
@@ -23,13 +19,11 @@ class CompletionProvider implements CompletionItemProvider {
     let keys = loader.keys
 
     if (scopedKey) {
-      keys = keys
-        .filter(k => k.startsWith(`${scopedKey}.`))
-        .map(k => k.slice(scopedKey.length + 1))
+      keys = keys.filter(k => k.startsWith(`${scopedKey}.`)).map(k => k.slice(scopedKey.length + 1))
     }
 
     if (!key) {
-      return keys.map((k) => {
+      return keys.map(k => {
         const item = new CompletionItem(k, CompletionItemKind.Value)
         item.detail = loader.getValueByKey(scopedKey ? `${scopedKey}.${k}` : k)
         item.range = range
@@ -44,7 +38,7 @@ class CompletionProvider implements CompletionItemProvider {
 
     const results = fuse.search(key)
 
-    return results.map((result) => {
+    return results.map(result => {
       const k = result.item
       const item = new CompletionItem(k, CompletionItemKind.Value)
       item.detail = loader.getValueByKey(scopedKey ? `${scopedKey}.${k}` : k)
@@ -58,7 +52,11 @@ const m: ExtensionModule = () => {
   return languages.registerCompletionItemProvider(
     Global.getDocumentSelectors(),
     new CompletionProvider(),
-    '.', '\'', '"', '`', ':',
+    '.',
+    "'",
+    '"',
+    '`',
+    ':',
   )
 }
 

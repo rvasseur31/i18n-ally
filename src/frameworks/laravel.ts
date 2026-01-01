@@ -9,31 +9,18 @@ class LaravelFramework extends Framework {
   monopoly = true
 
   detection = {
-    composerJSON: [
-      'laravel/framework',
-    ],
+    composerJSON: ['laravel/framework'],
   }
 
-  languageIds: LanguageId[] = [
-    'php',
-    'blade',
-  ]
+  languageIds: LanguageId[] = ['php', 'blade']
 
   enabledParsers = ['php']
 
   // for visualize the regex, you can use https://regexper.com/
-  usageMatchRegex = [
-    '[^\\w\\d](?:__|trans|@lang|trans_choice)\\([\'"`]({key})[\'"`]',
-  ]
+  usageMatchRegex = ['[^\\w\\d](?:__|trans|@lang|trans_choice)\\([\'"`]({key})[\'"`]']
 
   refactorTemplates(keypath: string) {
-    return [
-      `__('${keypath}')`,
-      `trans_choice('${keypath}')`,
-      `trans('${keypath}')`,
-      `@lang('${keypath}')`,
-      keypath,
-    ]
+    return [`__('${keypath}')`, `trans_choice('${keypath}')`, `trans('${keypath}')`, `@lang('${keypath}')`, keypath]
   }
 
   enableFeatures = {

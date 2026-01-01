@@ -24,8 +24,7 @@ const statusbar: ExtensionModule = () => {
       bar2.command = Commands.config_display_language
       bar2.tooltip = i18n.t('command.config_display_language')
       bar2.show()
-    }
-    catch (e) {
+    } catch {
       bar1.hide()
       bar2.hide()
     }

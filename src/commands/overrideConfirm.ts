@@ -12,26 +12,16 @@ export async function overrideConfirm(keypath: string, allowSkip = false, allowR
 
     const options = [Override]
 
-    if (allowSkip)
-      options.push(Skip)
+    if (allowSkip) options.push(Skip)
 
-    if (allowRenter)
-      options.push(Reenter)
+    if (allowRenter) options.push(Reenter)
 
-    const result = await window.showInformationMessage(
-      i18n.t('prompt.key_already_exists'),
-      { modal: true },
-      ...options,
-    )
+    const result = await window.showInformationMessage(i18n.t('prompt.key_already_exists'), { modal: true }, ...options)
 
-    if (result === Override)
-      return 'override'
+    if (result === Override) return 'override'
 
-    if (result === Reenter)
-      return 'retry'
-
-    else if (result === Skip)
-      return 'skip'
+    if (result === Reenter) return 'retry'
+    else if (result === Skip) return 'skip'
 
     return 'canceled'
   }

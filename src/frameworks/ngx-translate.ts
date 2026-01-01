@@ -6,31 +6,20 @@ class NgxTranslateFramework extends Framework {
   display = 'Angular ngx-translate'
 
   detection = {
-    packageJSON: [
-      '@ngx-translate/core',
-    ],
+    packageJSON: ['@ngx-translate/core'],
   }
 
-  languageIds: LanguageId[] = [
-    'javascript',
-    'javascriptreact',
-    'typescript',
-    'typescriptreact',
-    'html',
-  ]
+  languageIds: LanguageId[] = ['javascript', 'javascriptreact', 'typescript', 'typescriptreact', 'html']
 
   // for visualize the regex, you can use https://regexper.com/
-  usageMatchRegex= [
+  usageMatchRegex = [
     '[`\'"]({key})[`\'"][\\s\\n]*\\|[\\s\\n]*translate',
-    '(?:translate|translateService)\\.(?:get|instant|stream)\\([\\s\\n]*\[[\\s\\n]*[\'"`]({key})[\'"`]',
+    '(?:translate|translateService)\\.(?:get|instant|stream)\\([\\s\\n]*[[\\s\\n]*[\'"`]({key})[\'"`]',
     '[\\s\\n]translate>[\\s\\n]*({key})[\\s\\n]*</',
   ]
 
   refactorTemplates(keypath: string) {
-    return [
-      `{{ '${keypath}' | translate }}`,
-      keypath,
-    ]
+    return [`{{ '${keypath}' | translate }}`, keypath]
   }
 }
 

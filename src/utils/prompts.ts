@@ -21,16 +21,19 @@ export async function promptKeys(text: string, locale = Config.displayLanguage) 
     {
       matchOnDescription: true,
       placeHolder: text,
-    })
+    },
+  )
   return result?.label
 }
 
-export async function promptTemplates(keypath: string, args?: string[], doc?: TextDocument, detection?: DetectionResult) {
-  const replacer = await window.showQuickPick(
-    Global.interpretRefactorTemplates(keypath, args, doc, detection),
-    {
-      placeHolder: i18n.t('prompt.replace_text_as'),
-    },
-  )
+export async function promptTemplates(
+  keypath: string,
+  args?: string[],
+  doc?: TextDocument,
+  detection?: DetectionResult,
+) {
+  const replacer = await window.showQuickPick(Global.interpretRefactorTemplates(keypath, args, doc, detection), {
+    placeHolder: i18n.t('prompt.replace_text_as'),
+  })
   return replacer
 }

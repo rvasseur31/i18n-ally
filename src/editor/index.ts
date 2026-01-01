@@ -9,7 +9,7 @@ import statusbar from './statusbar'
 import reviewComments from './reviewComments'
 import { ExtensionModule } from '~/modules'
 
-const m: ExtensionModule = (ctx) => {
+const m: ExtensionModule = ctx => {
   return [
     annotation(ctx),
     completion(ctx),

@@ -1,4 +1,3 @@
-
 export enum ViewIds {
   progress = 'i18n-ally-locales-progress',
   tree = 'i18n-ally-locales-tree',

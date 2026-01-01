@@ -8,41 +8,27 @@ class VSCodeFramework extends Framework {
   display = 'VS Code'
 
   detection = {
-    packageJSON: [
-      'vscode',
-      '@types/vscode',
-    ],
+    packageJSON: ['vscode', '@types/vscode'],
   }
 
   enabledParsers = ['json']
 
-  languageIds: LanguageId[] = [
-    'json',
-    'javascript',
-    'typescript',
-  ]
+  languageIds: LanguageId[] = ['json', 'javascript', 'typescript']
 
   pathMatcher = () => 'package.nls.?{locale?}.json'
 
   usageMatchRegex = (languageIds?: string, filename?: string) => {
-    if (filename && basename(filename) === 'package.json')
-      return '"%({key})%"'
+    if (filename && basename(filename) === 'package.json') return '"%({key})%"'
     // for visualize the regex, you can use https://regexper.com/
     return '(?:i18n[ (]path=|v-t=[\'"`{]|(?:this\\.|\\$|i18n\\.)(?:(?:d|n)\\(.*?,|(?:t|tc|te)\\()\\s*)[\'"`]({key})[\'"`]'
   }
 
   refactorTemplates(keypath: string, args?: string[], doc?: TextDocument) {
     if (doc?.languageId === 'json') {
-      return [
-        `%${keypath}%`,
-        keypath,
-      ]
+      return [`%${keypath}%`, keypath]
     }
 
-    return [
-      `i18n.t('${keypath}')`,
-      keypath,
-    ]
+    return [`i18n.t('${keypath}')`, keypath]
   }
 }
 

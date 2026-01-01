@@ -10,8 +10,7 @@ export class Json5Parser extends Parser {
   }
 
   async parse(text: string) {
-    if (!text || !text.trim())
-      return {}
+    if (!text || !text.trim()) return {}
     return JSON5.parse(text)
   }
 
@@ -22,14 +21,10 @@ export class Json5Parser extends Parser {
   }
 
   navigateToKey(text: string, keypath: string, keystyle: KeyStyle) {
-    const keys = keystyle === 'flat'
-      ? [keypath]
-      : keypath.split('.')
+    const keys = keystyle === 'flat' ? [keypath] : keypath.split('.')
 
     // build regex to search key
-    let regexString = keys
-      .map((key, i) => `^[ \\t]{${(i + 1) * this.options.indent}}"?${key}"?: ?`)
-      .join('[\\s\\S]*')
+    let regexString = keys.map((key, i) => `^[ \\t]{${(i + 1) * this.options.indent}}"?${key}"?: ?`).join('[\\s\\S]*')
     regexString += '(?:"?(.*)"?|({))'
     const regex = new RegExp(regexString, 'gm')
 
@@ -39,8 +34,7 @@ export class Json5Parser extends Parser {
       const value = match[1] || match[2]
       const start = end - value.length
       return { start, end, key: keypath, quoted: true }
-    }
-    else {
+    } else {
       return undefined
     }
   }

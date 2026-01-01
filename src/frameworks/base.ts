@@ -1,17 +1,23 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { TextDocument } from 'vscode'
 import { LanguageId } from '~/utils'
-import { DirStructure, OptionalFeatures, RewriteKeySource, RewriteKeyContext, DataProcessContext, KeyStyle, Config } from '~/core'
+import {
+  DirStructure,
+  OptionalFeatures,
+  RewriteKeySource,
+  RewriteKeyContext,
+  DataProcessContext,
+  KeyStyle,
+  Config,
+} from '~/core'
 import { DetectionResult } from '~/core/types'
 
-export type FrameworkDetectionDefine = string[] | { none?: string[]; every?: string[]; any?: string[] } | ((packages: string[], root: string) => boolean)
+export type FrameworkDetectionDefine =
+  | string[]
+  | { none?: string[]; every?: string[]; any?: string[] }
+  | ((packages: string[], root: string) => boolean)
 
-export type PackageFileType
-= 'packageJSON'
-| 'pubspecYAML'
-| 'composerJSON'
-| 'gemfile'
-| 'none'
+export type PackageFileType = 'packageJSON' | 'pubspecYAML' | 'composerJSON' | 'gemfile' | 'none'
 
 export interface ScopeRange {
   start: number
@@ -41,12 +47,21 @@ export abstract class Framework {
   /**
    * Array of regex for detect keys in document
    */
-  abstract usageMatchRegex: string | RegExp | (string | RegExp)[] | ((languageId?: string, filepath?: string) => string | RegExp | (string | RegExp)[])
+  abstract usageMatchRegex:
+    | string
+    | RegExp
+    | (string | RegExp)[]
+    | ((languageId?: string, filepath?: string) => string | RegExp | (string | RegExp)[])
 
   /**
    * Return possible choices of replacement for messages extracted from code
    */
-  abstract refactorTemplates (keypath: string, args?: string[], document?: TextDocument, detection?: DetectionResult): string[]
+  abstract refactorTemplates(
+    keypath: string,
+    args?: string[],
+    document?: TextDocument,
+    detection?: DetectionResult,
+  ): string[]
 
   /**
    * Analysis the file and get hard strings
@@ -66,12 +81,9 @@ export abstract class Framework {
    * Locale file's name match
    */
   pathMatcher(dirStructure?: DirStructure): string {
-    if (dirStructure === 'file')
-      return '{locale}.{ext}'
-    else if (Config.namespace)
-      return '{locale}/**/{namespace}.{ext}'
-    else
-      return '{locale}/**/*.{ext}'
+    if (dirStructure === 'file') return '{locale}.{ext}'
+    else if (Config.namespace) return '{locale}/**/{namespace}.{ext}'
+    else return '{locale}/**/*.{ext}'
   }
 
   preferredLocalePaths?: string[]
@@ -84,10 +96,8 @@ export abstract class Framework {
 
   getUsageMatchRegex(languageId = '*', filepath?: string) {
     let reg: string | RegExp | (string | RegExp)[] | undefined
-    if (typeof this.usageMatchRegex === 'function')
-      reg = this.usageMatchRegex(languageId, filepath)
-    else
-      reg = this.usageMatchRegex
+    if (typeof this.usageMatchRegex === 'function') reg = this.usageMatchRegex(languageId, filepath)
+    else reg = this.usageMatchRegex
     return reg
   }
 

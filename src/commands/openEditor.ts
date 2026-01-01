@@ -8,19 +8,18 @@ import i18n from '~/i18n'
 import { ActionSource, Global, Telemetry, TelemetryKey } from '~/core'
 import { promptKeys } from '~/utils'
 
-export default <ExtensionModule> function(ctx) {
+export default (<ExtensionModule>function (ctx) {
   // if the editor is bind with current document
 
   const supportedFileOpen = () => {
     const doc = window.activeTextEditor?.document
 
-    if (!doc || !Global.isLanguageIdSupported(doc.languageId))
-      return false
+    if (!doc || !Global.isLanguageIdSupported(doc.languageId)) return false
 
     return true
   }
 
-  const openEditor = async(item?: string | LocaleTreeItem | CommandOptions) => {
+  const openEditor = async (item?: string | LocaleTreeItem | CommandOptions) => {
     let actionSource = ActionSource.None
 
     let key: string | undefined
@@ -31,8 +30,7 @@ export default <ExtensionModule> function(ctx) {
     // from command pattele
     if (!item) {
       actionSource = ActionSource.CommandPattele
-      if (supportedFileOpen())
-        mode = 'currentFile'
+      if (supportedFileOpen()) mode = 'currentFile'
 
       key = await promptKeys(i18n.t('prompt.choice_key_to_open'))
     }
@@ -57,11 +55,9 @@ export default <ExtensionModule> function(ctx) {
       }
     }
 
-    if (!key)
-      return
+    if (!key) return
 
-    if (actionSource !== ActionSource.None)
-      Telemetry.track(TelemetryKey.EditorOpen, { source: actionSource })
+    if (actionSource !== ActionSource.None) Telemetry.track(TelemetryKey.EditorOpen, { source: actionSource })
 
     const panel = EditorPanel.createOrShow(ctx, mode === 'currentFile' ? ViewColumn.Two : undefined)
     panel.mode = mode
@@ -70,11 +66,11 @@ export default <ExtensionModule> function(ctx) {
 
   function updateContext(doc?: TextDocument) {
     if (
-      Global.enabled
-      && doc
-      && window.activeTextEditor?.document === doc
-      && EditorPanel.currentPanel?.visible
-      && supportedFileOpen()
+      Global.enabled &&
+      doc &&
+      window.activeTextEditor?.document === doc &&
+      EditorPanel.currentPanel?.visible &&
+      supportedFileOpen()
     )
       EditorPanel.currentPanel.sendCurrentFileContext()
   }
@@ -85,4 +81,4 @@ export default <ExtensionModule> function(ctx) {
     workspace.onDidSaveTextDocument(updateContext),
     window.onDidChangeActiveTextEditor(e => updateContext(e?.document)),
   ]
-}
+})

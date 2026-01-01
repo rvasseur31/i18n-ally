@@ -32,8 +32,7 @@ export class ProgressProvider implements TreeDataProvider<BaseTreeItem> {
   }
 
   async getChildren(element?: BaseTreeItem) {
-    if (element)
-      return await element.getChildren()
+    if (element) return await element.getChildren()
     return Object.values(Global.allLocales)
       .map(node => CurrentFile.loader.getCoverage(node))
       .filter(notEmpty)

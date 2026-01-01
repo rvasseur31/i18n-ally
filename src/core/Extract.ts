@@ -7,37 +7,39 @@ import { ExtractInfo } from './types'
 import { CurrentFile } from './CurrentFile'
 import { changeCase } from '~/utils/changeCase'
 
-export function generateKeyFromText(text: string, filepath?: string, reuseExisting = false, usedKeys: string[] = []): string {
+export function generateKeyFromText(
+  text: string,
+  filepath?: string,
+  reuseExisting = false,
+  usedKeys: string[] = [],
+): string {
   let key: string | undefined
 
   // already existed, reuse the key
   // mostly for auto extraction
   if (reuseExisting) {
     key = Global.loader.searchKeyForTranslations(text)
-    if (key)
-      return key
+    if (key) return key
   }
 
   // keygent
   const keygenStrategy = Config.keygenStrategy
   if (keygenStrategy === 'random') {
     key = randomUUID()
-  }
-  else if (keygenStrategy === 'empty') {
+  } else if (keygenStrategy === 'empty') {
     key = ''
-  }
-  else if (keygenStrategy === 'source') {
+  } else if (keygenStrategy === 'source') {
     key = text
-  }
-  else {
+  } else {
     text = text.replace(/\$/g, '')
-    key = slugify(text, { replacement: Config.preferredDelimiter, lower: true })
-      .slice(0, Config.extractKeyMaxLength ?? Infinity)
+    key = slugify(text, { replacement: Config.preferredDelimiter, lower: true }).slice(
+      0,
+      Config.extractKeyMaxLength ?? Infinity,
+    )
   }
 
   const keyPrefix = Config.keyPrefix
-  if (keyPrefix && keygenStrategy !== 'empty' && keygenStrategy !== 'source')
-    key = keyPrefix + key
+  if (keyPrefix && keygenStrategy !== 'empty' && keygenStrategy !== 'source') key = keyPrefix + key
 
   if (filepath && key.includes('fileName')) {
     key = key
@@ -48,8 +50,7 @@ export function generateKeyFromText(text: string, filepath?: string, reuseExisti
   key = changeCase(key, Config.keygenStyle).trim()
 
   // some symbol can't convert to alphabet correctly, apply a default key to it
-  if (!key)
-    key = 'key'
+  if (!key) key = 'key'
 
   // suffix with a auto increment number if same key
   if (usedKeys.includes(key) || CurrentFile.loader.getNodeByKey(key)) {
@@ -59,17 +60,14 @@ export function generateKeyFromText(text: string, filepath?: string, reuseExisti
     do {
       key = `${originalKey}${Config.preferredDelimiter}${num}`
       num += 1
-    } while (
-      usedKeys.includes(key) || CurrentFile.loader.getNodeByKey(key, false)
-    )
+    } while (usedKeys.includes(key) || CurrentFile.loader.getNodeByKey(key, false))
   }
 
   return key
 }
 
 export async function extractHardStrings(document: TextDocument, extracts: ExtractInfo[], saveFile = false) {
-  if (!extracts.length)
-    return
+  if (!extracts.length) return
 
   const editor = await window.showTextDocument(document)
   const filepath = document.uri.fsPath
@@ -78,12 +76,9 @@ export async function extractHardStrings(document: TextDocument, extracts: Extra
   extracts.sort((a, b) => b.range.start.compareTo(a.range.start))
 
   // replace
-  await editor.edit((editBuilder) => {
+  await editor.edit(editBuilder => {
     for (const extract of extracts) {
-      editBuilder.replace(
-        extract.range,
-        extract.replaceTo,
-      )
+      editBuilder.replace(extract.range, extract.replaceTo)
     }
   })
 
@@ -100,8 +95,7 @@ export async function extractHardStrings(document: TextDocument, extracts: Extra
       })),
   )
 
-  if (saveFile)
-    await document.save()
+  if (saveFile) await document.save()
 
   CurrentFile.invalidate()
 }

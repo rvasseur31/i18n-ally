@@ -9,14 +9,7 @@ class VueFramework extends Framework {
   display = 'Vue'
 
   detection = {
-    packageJSON: [
-      'vue-i18n',
-      'vuex-i18n',
-      '@panter/vue-i18next',
-      '@nuxtjs/i18n',
-      'nuxt-i18n',
-      '@intlify/nuxt3',
-    ],
+    packageJSON: ['vue-i18n', 'vuex-i18n', '@panter/vue-i18next', '@nuxtjs/i18n', 'nuxt-i18n', '@intlify/nuxt3'],
   }
 
   languageIds: LanguageId[] = [
@@ -31,13 +24,12 @@ class VueFramework extends Framework {
 
   // for visualize the regex, you can use https://regexper.com/
   usageMatchRegex = [
-    '(?:i18n(?:-\\w+)?[ \\n]\\s*(?:\\w+=[\'"][^\'"]*[\'"][ \\n]\\s*)?(?:key)?path=|v-t=[\'"`{]|(?:this\\.|\\$|i18n\\.|[^\\w\\d])(?:t|tc|te)\\()\\s*[\'"`]({key})[\'"`]'
+    '(?:i18n(?:-\\w+)?[ \\n]\\s*(?:\\w+=[\'"][^\'"]*[\'"][ \\n]\\s*)?(?:key)?path=|v-t=[\'"`{]|(?:this\\.|\\$|i18n\\.|[^\\w\\d])(?:t|tc|te)\\()\\s*[\'"`]({key})[\'"`]',
   ]
 
   refactorTemplates(keypath: string, args: string[] = [], doc?: TextDocument, detection?: DetectionResult) {
     let params = `'${keypath}'`
-    if (args.length)
-      params += `, [${args.join(', ')}]`
+    if (args.length) params += `, [${args.join(', ')}]`
 
     switch (detection?.source) {
       case 'html-inline':
@@ -75,12 +67,13 @@ class VueFramework extends Framework {
       DefaultDynamicExtractionsRules,
       Config.extractParserHTMLOptions,
       // <script>
-      script => extractionsParsers.babel.detect(
-        script,
-        DefaultExtractionRules,
-        DefaultDynamicExtractionsRules,
-        Config.extractParserBabelOptions,
-      ),
+      script =>
+        extractionsParsers.babel.detect(
+          script,
+          DefaultExtractionRules,
+          DefaultDynamicExtractionsRules,
+          Config.extractParserBabelOptions,
+        ),
     )
   }
 }

@@ -4,7 +4,15 @@ import { overrideConfirm } from './overrideConfirm'
 import { Commands } from './commands'
 import { keypathValidate, Log, promptTemplates } from '~/utils'
 import { ExtensionModule } from '~/modules'
-import { extractHardStrings, generateKeyFromText, Config, CurrentFile, DetectionResult, Telemetry, TelemetryKey } from '~/core'
+import {
+  extractHardStrings,
+  generateKeyFromText,
+  Config,
+  CurrentFile,
+  DetectionResult,
+  Telemetry,
+  TelemetryKey,
+} from '~/core'
 import i18n from '~/i18n'
 
 import { parseHardString } from '~/extraction/parseHardString'
@@ -36,8 +44,7 @@ async function ExtractOrInsertCommnad(options?: ExtractTextOptions, detection?: 
     // execute from command palette, get from active document
     const editor = window.activeTextEditor
     const currentDoc = editor?.document
-    if (!editor || !currentDoc)
-      return
+    if (!editor || !currentDoc) return
 
     options = {
       text: '',
@@ -62,10 +69,9 @@ async function ExtractOrInsertCommnad(options?: ExtractTextOptions, detection?: 
 
   const default_keypath = generateKeyFromText(rawText || text, filepath)
 
-  const existingItems: QuickPickItemWithKey[]
-    = isInsert
-      ? []
-      : loader.keys
+  const existingItems: QuickPickItemWithKey[] = isInsert
+    ? []
+    : loader.keys
         .map(key => ({
           description: loader.getValueByKey(key, Config.sourceLanguage, 0),
           keypath: key,
@@ -82,14 +88,11 @@ async function ExtractOrInsertCommnad(options?: ExtractTextOptions, detection?: 
   const getPickItems = (input?: string) => {
     const path = input?.split('.').slice(0, -1).join('.')
 
-    const node = path
-      ? (loader.getTreeNodeByKey(path))
-      : CurrentFile.loader.root
+    const node = path ? loader.getTreeNodeByKey(path) : CurrentFile.loader.root
 
     let items: QuickPickItemWithKey[] = []
     if (node?.type === 'tree') {
-      items = Object
-        .values(node.children)
+      items = Object.values(node.children)
         .sort((a, b) => b.type.localeCompare(a.type))
         .map(i => ({
           label: `$(${i.type === 'tree' ? 'json' : 'symbol-parameter'}) ${i.keypath}`,
@@ -97,8 +100,7 @@ async function ExtractOrInsertCommnad(options?: ExtractTextOptions, detection?: 
           type: i.type,
           keypath: i.keypath,
         }))
-    }
-    else if (node?.type === 'node') {
+    } else if (node?.type === 'node') {
       items = [
         {
           label: `$(symbol-parameter) ${node.keypath}`,
@@ -109,8 +111,7 @@ async function ExtractOrInsertCommnad(options?: ExtractTextOptions, detection?: 
       ]
     }
 
-    if (existingItems.length)
-      items = [...existingItems, ...items]
+    if (existingItems.length) items = [...existingItems, ...items]
 
     // create new item if value not exists
     if (!isInsert && input && !input.endsWith('.') && !items.find(i => i.keypath === input)) {
@@ -126,13 +127,12 @@ async function ExtractOrInsertCommnad(options?: ExtractTextOptions, detection?: 
     return items
   }
 
-  const extract = async(keypath: string, checkOverride = true) => {
+  const extract = async (keypath: string, checkOverride = true) => {
     if (!keypath) {
       window.showWarningMessage(i18n.t('prompt.extraction_canceled'))
       return
     }
-    if (!keypathValidate(keypath))
-      return window.showWarningMessage(i18n.t('prompt.invalid_keypath'))
+    if (!keypathValidate(keypath)) return window.showWarningMessage(i18n.t('prompt.invalid_keypath'))
 
     const writeKeypath = CurrentFile.loader.rewriteKeys(keypath, 'write', { locale })
 
@@ -143,8 +143,7 @@ async function ExtractOrInsertCommnad(options?: ExtractTextOptions, detection?: 
         commands.executeCommand(Commands.extract_text, options, detection)
         return
       }
-      if (shouldOverride === 'canceled')
-        return
+      if (shouldOverride === 'canceled') return
     }
 
     const replacer = await promptTemplates(keypath, args, document, detection)
@@ -154,13 +153,15 @@ async function ExtractOrInsertCommnad(options?: ExtractTextOptions, detection?: 
       return
     }
 
-    await extractHardStrings(document, [{
-      range,
-      replaceTo: replacer,
-      keypath: shouldOverride === 'skip' ? undefined : writeKeypath,
-      message: text,
-      locale,
-    }])
+    await extractHardStrings(document, [
+      {
+        range,
+        replaceTo: replacer,
+        keypath: shouldOverride === 'skip' ? undefined : writeKeypath,
+        message: text,
+        locale,
+      },
+    ])
   }
 
   // create and init a QuickPick for the path
@@ -174,8 +175,7 @@ async function ExtractOrInsertCommnad(options?: ExtractTextOptions, detection?: 
 
   picker.onDidAccept(() => {
     const selection = picker.activeItems[0]
-    if (!selection)
-      return
+    if (!selection) return
 
     if (selection.type === 'new' || selection.type === 'node') {
       picker.dispose()
@@ -184,8 +184,7 @@ async function ExtractOrInsertCommnad(options?: ExtractTextOptions, detection?: 
     if (selection.type === 'existed') {
       picker.dispose()
       extract(selection.keypath, false)
-    }
-    else {
+    } else {
       const value = `${selection.keypath}.`
       picker.value = value
       picker.items = getPickItems(value)
@@ -200,19 +199,17 @@ async function ExtractOrInsertCommnad(options?: ExtractTextOptions, detection?: 
 
   picker.onDidHide(() => picker.dispose())
 
-  await picker.show()
+  picker.show()
 }
 
 function ExtractIngore(text: string, document?: TextDocument) {
   if (document) {
     const path = relative(Config.root, document.uri.fsPath)
     const obj = Config.extractIgnoredByFiles
-    if (!obj[path])
-      obj[path] = []
+    if (!obj[path]) obj[path] = []
     obj[path].push(text)
     Config.extractIgnoredByFiles = obj
-  }
-  else {
+  } else {
     Config.extractIgnored = [...Config.extractIgnored, text]
   }
 

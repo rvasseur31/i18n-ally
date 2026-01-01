@@ -1,4 +1,3 @@
-
 export const ROOT_KEY = '__i18n_ally_root__'
 
 export function unflatten(data: any) {
@@ -6,17 +5,12 @@ export function unflatten(data: any) {
 
   Object.keys(data || {})
     .sort((a, b) => b.length - a.length)
-    .forEach((key) => {
-      const original = key
-        ? getValue(output, key)
-        : output
+    .forEach(key => {
+      const original = key ? getValue(output, key) : output
 
-      if (isObject(original))
-        setValue(output, key ? `${key}.${ROOT_KEY}` : ROOT_KEY, data[key])
-      else if (original === undefined)
-        setValue(output, key, data[key])
-      else
-        throw new Error(`Duplicated key ${key} found`)
+      if (isObject(original)) setValue(output, key ? `${key}.${ROOT_KEY}` : ROOT_KEY, data[key])
+      else if (original === undefined) setValue(output, key, data[key])
+      else throw new Error(`Duplicated key ${key} found`)
     })
 
   return output
@@ -36,8 +30,7 @@ export function setValue(obj: any, path: string | string[], value: any) {
   let current = obj
   for (let i = 0; i < keys.length - 1; i++) {
     const key = keys[i]
-    if (!current[key])
-      current[key] = {}
+    if (!current[key]) current[key] = {}
     current = current[key]
   }
   current[keys[keys.length - 1]] = value

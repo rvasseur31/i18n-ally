@@ -30,13 +30,11 @@ export class CurrentFileInUseItem extends BaseTreeItem {
 
   // @ts-expect-error
   get collapsibleState() {
-    if (this.getKeys().length)
-      return TreeItemCollapsibleState.Expanded
-    else
-      return TreeItemCollapsibleState.None
+    if (this.getKeys().length) return TreeItemCollapsibleState.Expanded
+    else return TreeItemCollapsibleState.None
   }
 
-  set collapsibleState(_) { }
+  set collapsibleState(_) {}
 
   async getChildren() {
     return this.getKeys()

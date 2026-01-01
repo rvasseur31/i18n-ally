@@ -10,8 +10,7 @@ export class ProgressMissingListItem extends ProgressSubmenuItem {
   // @ts-expect-error
   get contextValue() {
     const values: string[] = []
-    if (this.node.locale !== Config.sourceLanguage)
-      values.push('translatable')
+    if (this.node.locale !== Config.sourceLanguage) values.push('translatable')
     values.push('fulfillable')
     return values.join('-')
   }

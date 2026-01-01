@@ -11,8 +11,7 @@ export class JsonParser extends Parser {
   }
 
   async parse(text: string) {
-    if (!text || !text.trim())
-      return {}
+    if (!text || !text.trim()) return {}
     return JSON.parse(text)
   }
 
@@ -21,29 +20,24 @@ export class JsonParser extends Parser {
 
     if (sort)
       return `${SortedStringify(object, { space: indent, cmp: compare ? (a, b) => compare(a.key, b.key) : undefined })}\n`
-    else
-      return `${JSON.stringify(object, null, indent)}\n`
+    else return `${JSON.stringify(object, null, indent)}\n`
   }
 
   annotationSupported = true
   annotationLanguageIds = ['json']
 
   parseAST(text: string) {
-    if (!text || !text.trim())
-      return []
+    if (!text || !text.trim()) return []
 
     const map = JsonMap.parse(text).pointers
     const pairs = Object.entries<any>(map)
-      .filter(([k, v]) => k)
+      .filter(([k]) => k)
       .map(([k, v]) => ({
         quoted: true,
         start: v.value.pos + 1,
         end: v.valueEnd.pos - 1,
         // https://tools.ietf.org/html/rfc6901
-        key: k.slice(1)
-          .replace(/\//g, '.')
-          .replace(/~0/g, '~')
-          .replace(/~1/g, '/'),
+        key: k.slice(1).replace(/\//g, '.').replace(/~0/g, '~').replace(/~1/g, '/'),
       }))
 
     return pairs

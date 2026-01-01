@@ -31,8 +31,7 @@ export class ReviewRequestChangesItem extends BaseTreeItem {
   // @ts-expect-error
   get description() {
     let comment = this.comment.comment
-    if (comment)
-      comment += '  '
+    if (comment) comment += '  '
     return `${comment}・ "${this.comment.keypath}"`
   }
 

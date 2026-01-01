@@ -30,18 +30,16 @@ export class CurrentFileNotFoundItem extends BaseTreeItem {
 
   // @ts-expect-error
   get collapsibleState() {
-    if (this.getKeys().length)
-      return TreeItemCollapsibleState.Collapsed
-    else
-      return TreeItemCollapsibleState.None
+    if (this.getKeys().length) return TreeItemCollapsibleState.Collapsed
+    else return TreeItemCollapsibleState.None
   }
 
-  set collapsibleState(_) { }
+  set collapsibleState(_) {}
 
   async getChildren() {
     return this.getKeys()
       .map(keypath => new LocaleNode({ keypath, shadow: true }))
       .map(node => node && new LocaleTreeItem(this.ctx, node, true))
-      .filter(item => item) as LocaleTreeItem[]
+      .filter(item => item)
   }
 }

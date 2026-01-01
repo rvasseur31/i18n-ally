@@ -19,11 +19,7 @@ export async function activate(ctx: ExtensionContext) {
   await Global.init(ctx)
   CurrentFile.watch(ctx)
 
-  const modules = [
-    commandsModules,
-    editorModules,
-    viewsModules,
-  ]
+  const modules = [commandsModules, editorModules, viewsModules]
 
   const disposables = modules.map(m => m(ctx)).flat()
   disposables.forEach(d => ctx.subscriptions.push(d))
@@ -33,11 +29,4 @@ export function deactivate() {
   Log.info('🈚 Deactivated')
 }
 
-export {
-  Global,
-  CurrentFile,
-  KeyDetector,
-  Config,
-  Log,
-  Commands,
-}
+export { Global, CurrentFile, KeyDetector, Config, Log, Commands }

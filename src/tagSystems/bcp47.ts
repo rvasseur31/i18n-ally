@@ -5,8 +5,7 @@ import { Config } from '~/core'
 // https://tools.ietf.org/html/bcp47
 export class BCP47 extends BaseTagSystem {
   normalize(locale?: string, fallback = 'en', strict = false) {
-    if (!locale)
-      return fallback
+    if (!locale) return fallback
 
     return bcp47.stringify(bcp47.parse(locale, { normalize: strict, forgiving: !strict })) || fallback
   }
@@ -17,8 +16,7 @@ export class BCP47 extends BaseTagSystem {
 
   toFlagname(locale: string) {
     const { region, language } = bcp47.parse(locale, { normalize: true, forgiving: true })
-    if (!language)
-      return ''
+    if (!language) return ''
     return (region || Config.localeCountryMap[language] || language || '').toLowerCase()
   }
 

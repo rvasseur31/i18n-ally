@@ -8,22 +8,15 @@ class PhpGettextFramework extends Framework {
 
   detection = {}
 
-  languageIds: LanguageId[] = [
-    'php',
-  ]
+  languageIds: LanguageId[] = ['php']
 
   enabledParsers = ['po']
 
   // for visualize the regex, you can use https://regexper.com/
-  usageMatchRegex = [
-    '[^\\w\\d](?:gettext)\\([\'"`]({key})[\'"`]',
-  ]
+  usageMatchRegex = ['[^\\w\\d](?:gettext)\\([\'"`]({key})[\'"`]']
 
   refactorTemplates(keypath: string) {
-    return [
-      `gettext('${keypath}')`,
-      keypath,
-    ]
+    return [`gettext('${keypath}')`, keypath]
   }
 
   enableFeatures = {

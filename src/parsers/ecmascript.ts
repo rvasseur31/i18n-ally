@@ -18,7 +18,7 @@ const LanguageExts = {
 export class EcmascriptParser extends Parser {
   readonly readonly = true
 
-  constructor(public readonly id: 'js'|'ts' = 'js') {
+  constructor(public readonly id: 'js' | 'ts' = 'js') {
     super([LanguageIds[id]], LanguageExts[id])
   }
 
@@ -47,12 +47,10 @@ export class EcmascriptParser extends Parser {
       // eslint-disable-next-line no-console
       console.log(`[i18n-ally] spawn: ${cmd}`)
       child_process.exec(cmd, (err, stdout) => {
-        if (err)
-          return reject(err)
+        if (err) return reject(err)
         try {
           resolve(JSON.parse(stdout.trim()))
-        }
-        catch (e) {
+        } catch (e) {
           reject(e)
         }
       })

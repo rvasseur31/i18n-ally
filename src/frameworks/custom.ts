@@ -46,8 +46,7 @@ class CustomFramework extends Framework {
       this.data = YAML.load(raw) as any
       Log.info(`🍱 Custom framework setting loaded. \n${JSON.stringify(this.data, null, 2)}\n`)
       return true
-    }
-    catch (e) {
+    } catch (e) {
       Log.error(e)
       this.data = undefined
       return false
@@ -56,16 +55,14 @@ class CustomFramework extends Framework {
 
   get languageIds(): LanguageId[] {
     let id = this.data?.languageIds || []
-    if (typeof id === 'string')
-      id = [id]
+    if (typeof id === 'string') id = [id]
 
     return id
   }
 
   get usageMatchRegex(): string[] {
     let id = this.data?.usageMatchRegex ?? this.data?.keyMatchReg ?? []
-    if (typeof id === 'string')
-      id = [id]
+    if (typeof id === 'string') id = [id]
 
     return id
   }
@@ -78,28 +75,23 @@ class CustomFramework extends Framework {
   set monopoly(_) {}
 
   refactorTemplates(keypath: string) {
-    return (this.data?.refactorTemplates || ['$1'])
-      .map(i => i.replace(/\$1/g, keypath))
+    return (this.data?.refactorTemplates || ['$1']).map(i => i.replace(/\$1/g, keypath))
   }
 
   getScopeRange(document: TextDocument): ScopeRange[] | undefined {
-    if (!this.data?.scopeRangeRegex)
-      return undefined
+    if (!this.data?.scopeRangeRegex) return undefined
 
-    if (!this.languageIds.includes(document.languageId as any))
-      return
+    if (!this.languageIds.includes(document.languageId as any)) return
 
     const ranges: ScopeRange[] = []
     const text = document.getText()
     const reg = new RegExp(this.data.scopeRangeRegex, 'g')
 
     for (const match of text.matchAll(reg)) {
-      if (match?.index == null)
-        continue
+      if (match?.index == null) continue
 
       // end previous scope
-      if (ranges.length)
-        ranges[ranges.length - 1].end = match.index
+      if (ranges.length) ranges[ranges.length - 1].end = match.index
 
       // start new scope if namespace provides
       if (match[1]) {
@@ -117,8 +109,7 @@ class CustomFramework extends Framework {
   startWatch(root?: string) {
     if (this.watchingFor) {
       this.watchingFor = undefined
-      if (this.watcher)
-        this.watcher.dispose()
+      if (this.watcher) this.watcher.dispose()
     }
     this.watchingFor = root
     if (root) {

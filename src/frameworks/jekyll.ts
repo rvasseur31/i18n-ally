@@ -6,26 +6,17 @@ class JekyllFramework extends Framework {
   display = 'Jekyll'
 
   detection = {
-    gemfile: [
-      'jekyll-multiple-languages-plugin',
-    ],
+    gemfile: ['jekyll-multiple-languages-plugin'],
   }
 
-  languageIds: LanguageId[] = [
-    'html',
-  ]
+  languageIds: LanguageId[] = ['html']
 
-  usageMatchRegex = [
-    '\\{\\%\\s+t\\s+({key})\\s+\\%\\}',
-  ]
+  usageMatchRegex = ['\\{\\%\\s+t\\s+({key})\\s+\\%\\}']
 
   preferredKeystyle = 'nested' as const
 
   refactorTemplates(keypath: string) {
-    return [
-      `{% t ${keypath} %}`,
-      keypath,
-    ]
+    return [`{% t ${keypath} %}`, keypath]
   }
 }
 

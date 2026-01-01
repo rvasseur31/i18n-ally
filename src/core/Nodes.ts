@@ -37,7 +37,7 @@ abstract class BaseNode implements INode {
 }
 
 export class LocaleRecord extends BaseNode implements ILocaleRecord {
-  readonly type: 'record' = 'record'
+  readonly type = 'record' as const
 
   readonly locale: string
   readonly value: string
@@ -50,7 +50,7 @@ export class LocaleRecord extends BaseNode implements ILocaleRecord {
 }
 
 export class LocaleNode extends BaseNode implements ILocaleNode {
-  readonly type: 'node' = 'node'
+  readonly type = 'node' as const
   readonly locales: Record<string, LocaleRecord>
 
   constructor(data: ILocaleNode) {
@@ -60,7 +60,7 @@ export class LocaleNode extends BaseNode implements ILocaleNode {
 
   public getValue(locale?: string, interpolate = false, visitedStack: string[] = []) {
     locale = locale || Config.displayLanguage
-    let value = (this.locales[locale] && this.locales[locale].value)
+    let value = this.locales[locale] && this.locales[locale].value
 
     // This is for interpolated linked messages
     // Refer to: https://kazupon.github.io/vue-i18n/guide/messages.html#linked-locale-messages
@@ -69,11 +69,13 @@ export class LocaleNode extends BaseNode implements ILocaleNode {
       if (matches) {
         for (const link of matches) {
           const linkKeyPrefixMatches: any = link.match(linkKeyPrefixMatcher)
-          const [linkPrefix, formatterName] = linkKeyPrefixMatches as (string|undefined)[]
+          const [linkPrefix, formatterName] = linkKeyPrefixMatches as (string | undefined)[]
           const keypath = link.replace(linkPrefix || '', '')
 
           if (visitedStack.includes(keypath)) {
-            Log.warn(`Circular reference found. "${link}" is already visited in the chain of ${visitedStack.reverse().join(' <- ')}`)
+            Log.warn(
+              `Circular reference found. "${link}" is already visited in the chain of ${visitedStack.reverse().join(' <- ')}`,
+            )
             return value
           }
           visitedStack.push(keypath)
@@ -83,8 +85,7 @@ export class LocaleNode extends BaseNode implements ILocaleNode {
           if (formatterName && linkedKeyModifiers[formatterName])
             translated = linkedKeyModifiers[formatterName](translated)
 
-          if (translated)
-            value = value.replace(link, translated)
+          if (translated) value = value.replace(link, translated)
         }
       }
     }
@@ -98,9 +99,9 @@ export class LocaleNode extends BaseNode implements ILocaleNode {
 }
 
 export class LocaleTree extends BaseNode implements ILocaleTree {
-  readonly type: 'tree' = 'tree'
+  readonly type = 'tree' as const
 
-  readonly children: Record<string | number, LocaleTree|LocaleNode>
+  readonly children: Record<string | number, LocaleTree | LocaleNode>
   readonly values: Record<string, object>
   readonly isCollection: boolean
 
@@ -115,18 +116,15 @@ export class LocaleTree extends BaseNode implements ILocaleTree {
     let child = this.children[key]
     if (this.isCollection && !child) {
       const index = parseInt(key)
-      if (!isNaN(index))
-        child = this.children[index]
+      if (!isNaN(index)) child = this.children[index]
     }
     return child
   }
 
   setChild(key: string, value: LocaleTree | LocaleNode) {
     const index = parseInt(key)
-    if (this.isCollection && !isNaN(index))
-      this.children[index] = value
-    else
-      this.children[key] = value
+    if (this.isCollection && !isNaN(index)) this.children[index] = value
+    else this.children[key] = value
   }
 }
 

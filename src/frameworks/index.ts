@@ -78,8 +78,7 @@ export function getFramework(id: string): Framework | undefined {
 export function getPackageDependencies(projectUrl: string): PackageDependencies {
   const result: PackageDependencies = {}
 
-  if (!projectUrl || !workspace.workspaceFolders)
-    return result
+  if (!projectUrl || !workspace.workspaceFolders) return result
 
   result.none = []
   result.packageJSON = PackageJSONParser.load(projectUrl)
@@ -91,7 +90,7 @@ export function getPackageDependencies(projectUrl: string): PackageDependencies 
 }
 
 export function getEnabledFrameworks(dependencies: PackageDependencies, root: string) {
-  let enabledFrameworks = frameworks.filter((framework) => {
+  let enabledFrameworks = frameworks.filter(framework => {
     for (const k of Object.keys(dependencies)) {
       const key = k as PackageFileType
       const packages = dependencies[key]
@@ -100,11 +99,9 @@ export function getEnabledFrameworks(dependencies: PackageDependencies, root: st
       if (packages && req) {
         if (typeof req === 'function') {
           return req(packages, root)
-        }
-        else if (Array.isArray(req)) {
+        } else if (Array.isArray(req)) {
           return req.some(key => packages.includes(key))
-        }
-        else {
+        } else {
           const none = req.none ? !req.none.some(key => packages.includes(key)) : true
           const any = req.any ? req.any.some(key => packages.includes(key)) : true
           const every = req.every ? req.every.every(key => packages.includes(key)) : true
@@ -118,34 +115,30 @@ export function getEnabledFrameworks(dependencies: PackageDependencies, root: st
   })
 
   for (const framework of enabledFrameworks) {
-    if (framework.monopoly)
-      enabledFrameworks = [framework]
+    if (framework.monopoly) enabledFrameworks = [framework]
   }
 
   // don't enable if only general framework is presented
-  if (enabledFrameworks.length === 1 && enabledFrameworks[0].id === 'general')
-    enabledFrameworks = []
+  if (enabledFrameworks.length === 1 && enabledFrameworks[0].id === 'general') enabledFrameworks = []
 
   return enabledFrameworks
 }
 
 export function getEnabledFrameworksByIds(ids: string[], root: string) {
   const missedFrameworks: string[] = []
-  const enabledFrameworks = ids.flatMap((id) => {
+  const enabledFrameworks = ids.flatMap(id => {
     const framework = frameworks.find(f => f.id === id)
     if (!framework) {
       missedFrameworks.push(id)
       return []
     }
 
-    if (framework instanceof CustomFramework)
-      framework.load(root)
+    if (framework instanceof CustomFramework) framework.load(root)
 
     return [framework]
   })
 
-  if (missedFrameworks.length > 0)
-    Log.warn(i18n.t('prompt.frameworks_not_found', missedFrameworks.join(', ')), true)
+  if (missedFrameworks.length > 0) Log.warn(i18n.t('prompt.frameworks_not_found', missedFrameworks.join(', ')), true)
 
   return enabledFrameworks
 }

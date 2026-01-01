@@ -5,14 +5,10 @@ export default class LibreTranslate extends TranslateEngine {
   apiRoot = 'http://localhost:5000'
 
   async translate(options: TranslateOptions) {
-    const {
-      from = 'auto',
-      to = 'auto',
-    } = options
+    const { from = 'auto', to = 'auto' } = options
 
     let apiRoot = this.apiRoot
-    if (Config.libreTranslateApiRoot)
-      apiRoot = Config.libreTranslateApiRoot
+    if (Config.libreTranslateApiRoot) apiRoot = Config.libreTranslateApiRoot
 
     const response = await fetch(`${apiRoot}/translate`, {
       method: 'POST',
@@ -33,10 +29,7 @@ export default class LibreTranslate extends TranslateEngine {
   }
 
   transform(response: any, options: TranslateOptions): TranslateResult {
-    const {
-      text,
-      to = 'auto',
-    } = options
+    const { text, to = 'auto' } = options
 
     const r: TranslateResult = {
       text,

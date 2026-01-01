@@ -16,9 +16,7 @@ export class CurrentFileLocalesTreeProvider implements TreeDataProvider<BaseTree
   public paths: string[] = []
   public pathsExists: string[] = []
 
-  constructor(
-    public ctx: ExtensionContext,
-  ) {
+  constructor(public ctx: ExtensionContext) {
     this.loadCurrentDocument()
 
     CurrentFile.onInvalidate(() => this.loadCurrentDocument())
@@ -30,8 +28,7 @@ export class CurrentFileLocalesTreeProvider implements TreeDataProvider<BaseTree
   }
 
   async getChildren(element?: BaseTreeItem) {
-    if (element)
-      return await element.getChildren()
+    if (element) return await element.getChildren()
 
     const items: BaseTreeItem[] = [
       new CurrentFileInUseItem(this),
@@ -49,13 +46,10 @@ export class CurrentFileLocalesTreeProvider implements TreeDataProvider<BaseTree
   loadCurrentDocument() {
     const editor = window.activeTextEditor
 
-    if (!editor)
-      return
+    if (!editor) return
 
-    if (!Global.isLanguageIdSupported(editor.document.languageId))
-      this.paths = []
-    else
-      this.paths = uniq(KeyDetector.getKeys(editor.document).map(i => i.key))
+    if (!Global.isLanguageIdSupported(editor.document.languageId)) this.paths = []
+    else this.paths = uniq(KeyDetector.getKeys(editor.document).map(i => i.key))
 
     this.updatePathsExists()
     this.refresh()

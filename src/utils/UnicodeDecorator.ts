@@ -15,22 +15,19 @@ const fonts = {
 
 export type FontNames = keyof typeof fonts
 
-const enabledPlatforms = [
-  'win32',
-]
+const enabledPlatforms = ['win32']
 
 export function unicodeTransform(text: string, from: FontNames, to: FontNames) {
-  if (!enabledPlatforms.includes(process.platform))
-    return text
+  if (!enabledPlatforms.includes(process.platform)) return text
 
   const FromFont = Array.from(fonts[from])
   const ToFont = Array.from(fonts[to])
   return Array.from(text)
-    .map((c) => {
-      if (FromFont.includes(c))
-        return ToFont[FromFont.indexOf(c)]
+    .map(c => {
+      if (FromFont.includes(c)) return ToFont[FromFont.indexOf(c)]
       return c
-    }).join('')
+    })
+    .join('')
 }
 
 export function unicodeDecorate(text: string, to: FontNames) {

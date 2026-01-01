@@ -7,14 +7,12 @@ import { trimDetection } from '~/extraction'
 import i18n from '~/i18n'
 
 export async function DetectHardStrings(document = window.activeTextEditor?.document, warn = true) {
-  if (!document)
-    return
+  if (!document) return
 
   const frameworks = Global.getExtractionFrameworksByLang(document.languageId)
 
   if (!frameworks.length) {
-    if (warn)
-      window.showWarningMessage(i18n.t('refactor.extracting_not_support_for_lang', document.languageId))
+    if (warn) window.showWarningMessage(i18n.t('refactor.extracting_not_support_for_lang', document.languageId))
     return
   }
 
@@ -30,8 +28,7 @@ export async function DetectHardStrings(document = window.activeTextEditor?.docu
         document,
       })) as DetectionResult[]
 
-    if (temp.length)
-      result.push(...temp)
+    if (temp.length) result.push(...temp)
   }
 
   // filter out ignored results
@@ -42,8 +39,6 @@ export async function DetectHardStrings(document = window.activeTextEditor?.docu
   return result
 }
 
-export default <ExtensionModule> function m() {
-  return [
-    commands.registerCommand(Commands.detect_hard_strings, DetectHardStrings),
-  ]
-}
+export default (<ExtensionModule>function m() {
+  return [commands.registerCommand(Commands.detect_hard_strings, DetectHardStrings)]
+})

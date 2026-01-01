@@ -72,10 +72,9 @@ export default class BaiduTranslate extends TranslateEngine {
         result.push(v.dst)
       })
       r.result = result
-    }
-    catch (e) {}
+    } catch {}
 
-    if (!r.result) r.error = new Error((`[${response.error_code}] ${response.error_msg}`) || 'No result')
+    if (!r.result) r.error = new Error(response ? `[${response.error_code}] ${response.error_msg}` : 'No result')
 
     return r
   }

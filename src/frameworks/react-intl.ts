@@ -2,22 +2,14 @@ import { Framework } from './base'
 import { LanguageId } from '~/utils'
 
 class ReactFramework extends Framework {
-  id= 'react'
-  display= 'React'
+  id = 'react'
+  display = 'React'
 
-  detection= {
-    packageJSON: [
-      'react-intl'
-    ],
+  detection = {
+    packageJSON: ['react-intl'],
   }
 
-  languageIds: LanguageId[] = [
-    'javascript',
-    'typescript',
-    'javascriptreact',
-    'typescriptreact',
-    'ejs',
-  ]
+  languageIds: LanguageId[] = ['javascript', 'typescript', 'javascriptreact', 'typescriptreact', 'ejs']
 
   // for visualize the regex, you can use https://regexper.com/
   usageMatchRegex = [
@@ -29,11 +21,7 @@ class ReactFramework extends Framework {
   ]
 
   refactorTemplates(keypath: string) {
-    return [
-      `{t('${keypath}')}`,
-      `t('${keypath}')`,
-      keypath,
-    ]
+    return [`{t('${keypath}')}`, `t('${keypath}')`, keypath]
   }
 }
 

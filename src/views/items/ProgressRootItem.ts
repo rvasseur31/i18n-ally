@@ -18,10 +18,8 @@ export class ProgressRootItem extends ProgressBaseItem {
     const progressStyle = process.platform === 'darwin' ? 2 : 7
     const progress = unicodeProgressBar(Math.round(percent), progressStyle)
     let description = `${progress}  ${percent}%  (${this.node.translated}/${this.node.total})`
-    if (this.isSource)
-      description += unicodeDecorate('  source', 'regional_indicator')
-    else if (this.isDisplay)
-      description += unicodeDecorate('  display', 'regional_indicator')
+    if (this.isSource) description += unicodeDecorate('  source', 'regional_indicator')
+    else if (this.isDisplay) description += unicodeDecorate('  display', 'regional_indicator')
     return description
   }
 
@@ -43,21 +41,18 @@ export class ProgressRootItem extends ProgressBaseItem {
 
   // @ts-expect-error
   get iconPath() {
-    if (!this.visible)
-      return this.getIcon('hidden', false)
+    if (!this.visible) return this.getIcon('hidden', false)
     return this.getFlagIcon(this.locale)
   }
 
   // @ts-expect-error
   get contextValue() {
     const context = ['progress']
-    if (!this.isSource)
-      context.push('notsource')
-    if (!this.isDisplay)
-      context.push('notdisply')
-    if (!this.visible)
-      context.push('show')
-    else if (!this.isDisplay) // should not hide if it's displaying
+    if (!this.isSource) context.push('notsource')
+    if (!this.isDisplay) context.push('notdisply')
+    if (!this.visible) context.push('show')
+    else if (!this.isDisplay)
+      // should not hide if it's displaying
       context.push('hide')
     context.push('openable')
     return context.join('-')
@@ -76,15 +71,11 @@ export class ProgressRootItem extends ProgressBaseItem {
       const translations = Global.reviews.getTranslationCandidatesLocale(this.locale)
       const change_requested = comments.filter(c => c.type === 'request_change')
       const suggestions = comments.filter(c => c.suggestion)
-      if (change_requested.length)
-        reviewItems.push(new ReviewRequestChangesRoot(this.ctx, change_requested))
-      if (suggestions.length)
-        reviewItems.push(new ReviewSuggestions(this.ctx, suggestions))
-      if (translations.length)
-        reviewItems.push(new ReviewTranslationCandidates(this.ctx, translations))
+      if (change_requested.length) reviewItems.push(new ReviewRequestChangesRoot(this.ctx, change_requested))
+      if (suggestions.length) reviewItems.push(new ReviewSuggestions(this.ctx, suggestions))
+      if (translations.length) reviewItems.push(new ReviewTranslationCandidates(this.ctx, translations))
 
-      if (reviewItems.length)
-        reviewItems.unshift(new Seperator(this.ctx))
+      if (reviewItems.length) reviewItems.unshift(new Seperator(this.ctx))
     }
 
     return [...items, ...reviewItems]

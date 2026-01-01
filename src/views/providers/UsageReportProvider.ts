@@ -10,10 +10,8 @@ export class UsageReportProvider implements TreeDataProvider<TreeItem> {
   view: TreeView<TreeItem> | undefined
   rootItems: TreeItem[] = []
 
-  constructor(
-    private ctx: ExtensionContext,
-  ) {
-    Analyst.onDidUsageReportChanged((u) => {
+  constructor(private ctx: ExtensionContext) {
+    Analyst.onDidUsageReportChanged(u => {
       this.set(u)
     })
   }
@@ -24,8 +22,7 @@ export class UsageReportProvider implements TreeDataProvider<TreeItem> {
 
     commands.executeCommand('setContext', 'i18n-ally-has-report', enabled)
     this.refresh()
-    if (enabled && this.rootItems.length)
-      this.view?.reveal(this.rootItems[0])
+    if (enabled && this.rootItems.length) this.view?.reveal(this.rootItems[0])
   }
 
   refresh(): void {
@@ -41,22 +38,19 @@ export class UsageReportProvider implements TreeDataProvider<TreeItem> {
     if (!element) {
       if (this.usages.active.length)
         this.rootItems.push(new UsageReportRootItem(this.ctx, 'active', this.usages.active))
-      if (this.usages.idle.length)
-        this.rootItems.push(new UsageReportRootItem(this.ctx, 'idle', this.usages.idle))
+      if (this.usages.idle.length) this.rootItems.push(new UsageReportRootItem(this.ctx, 'idle', this.usages.idle))
       if (this.usages.missing.length)
         this.rootItems.push(new UsageReportRootItem(this.ctx, 'missing', this.usages.missing))
-      if (!this.rootItems.length)
-        this.rootItems.push(new TreeItem(i18n.t('view.usage_report_none')))
-    }
-    else if (element instanceof UsageReportRootItem) {
-      this.rootItems = this.usages[element.key]
-        .map(usage => new UsageReportTreeItem(this.ctx, usage, element.key))
-    }
-    else if (element instanceof UsageReportTreeItem) {
-      this.rootItems = await Promise.all(element.usage.occurrences.map(async(o) => {
-        const location = await Analyst.getLocationOf(o)
-        return new LocationTreeItem(this.ctx, location)
-      }))
+      if (!this.rootItems.length) this.rootItems.push(new TreeItem(i18n.t('view.usage_report_none')))
+    } else if (element instanceof UsageReportRootItem) {
+      this.rootItems = this.usages[element.key].map(usage => new UsageReportTreeItem(this.ctx, usage, element.key))
+    } else if (element instanceof UsageReportTreeItem) {
+      this.rootItems = await Promise.all(
+        element.usage.occurrences.map(async o => {
+          const location = await Analyst.getLocationOf(o)
+          return new LocationTreeItem(this.ctx, location)
+        }),
+      )
     }
     return this.rootItems
   }

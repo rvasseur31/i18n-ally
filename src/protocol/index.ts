@@ -30,9 +30,7 @@ export class Protocol {
     public options?: {
       extendConfig?: any
     },
-  ) {
-
-  }
+  ) {}
 
   get config() {
     const locales = Global.loader?.locales || []
@@ -58,8 +56,7 @@ export class Protocol {
     if (this.ready) {
       const pendingMessages = this.pendingMessages
       this.pendingMessages = []
-      for (const msg of pendingMessages)
-        await this._postMessage(msg)
+      for (const msg of pendingMessages) await this._postMessage(msg)
     }
   }
 
@@ -86,8 +83,7 @@ export class Protocol {
 
   async handleMessages(message: Message) {
     const handled = this.extendHandler ? await Promise.resolve(this.extendHandler(message)) : undefined
-    if (handled)
-      return
+    if (handled) return
 
     switch (message.type) {
       case 'ready':
@@ -110,8 +106,7 @@ export class Protocol {
 
       case 'rename-key':
         const newkey = await RenameKey(message.keypath)
-        if (newkey)
-          this.switchToKey(newkey)
+        if (newkey) this.switchToKey(newkey)
         break
 
       case 'translate':

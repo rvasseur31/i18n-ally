@@ -12,11 +12,13 @@ export class UsageReportRootItem extends BaseTreeItem {
     public readonly keys: KeyUsage[],
   ) {
     super(ctx)
-    this.iconPath = this.getIcon({
-      active: 'checkmark',
-      idle: 'warning',
-      missing: 'icon-unknown',
-    }[this.key])
+    this.iconPath = this.getIcon(
+      {
+        active: 'checkmark',
+        idle: 'warning',
+        missing: 'icon-unknown',
+      }[this.key],
+    )
     this.count = keys.length
     this.collapsibleState = TreeItemCollapsibleState.Collapsed
     this.id = `usage-root-${this.key}`

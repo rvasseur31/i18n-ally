@@ -2,18 +2,14 @@ import { Framework } from './base'
 import { LanguageId } from '~/utils'
 
 class FlutterFramework extends Framework {
-  id= 'flutter'
-  display= 'Flutter'
+  id = 'flutter'
+  display = 'Flutter'
 
   detection = {
-    pubspecYAML: [
-      'flutter_i18n',
-    ],
+    pubspecYAML: ['flutter_i18n'],
   }
 
-  languageIds: LanguageId[] = [
-    'dart',
-  ]
+  languageIds: LanguageId[] = ['dart']
 
   // for visualize the regex, you can use https://regexper.com/
   usageMatchRegex = [
@@ -22,10 +18,7 @@ class FlutterFramework extends Framework {
   ]
 
   refactorTemplates(keypath: string) {
-    return [
-      `FlutterI18n.translate(buildContext, "${keypath}")`,
-      keypath,
-    ]
+    return [`FlutterI18n.translate(buildContext, "${keypath}")`, keypath]
   }
 }
 

@@ -16,7 +16,7 @@ interface DecodeData {
 
 const defaultEncoding = 'utf-8'
 const encodingMapping: Record<string, string> = {
-  'ascii': defaultEncoding,
+  ascii: defaultEncoding,
   'windows-1252': defaultEncoding,
 }
 
@@ -35,11 +35,9 @@ export class File {
       bom: false,
     }
 
-    if (!info.encoding && Config.encoding !== 'auto')
-      info.encoding = Config.encoding
+    if (!info.encoding && Config.encoding !== 'auto') info.encoding = Config.encoding
 
-    if (!info.encoding)
-      info.encoding = defaultEncoding
+    if (!info.encoding) info.encoding = defaultEncoding
 
     return info
   }
@@ -74,19 +72,16 @@ export class File {
   }
 
   static decode(buffer: Buffer, encoding?: string): DecodeData {
-    if (!encoding)
-      encoding = defaultEncoding
+    if (!encoding) encoding = defaultEncoding
 
-    if (encodingMapping[encoding])
-      encoding = encodingMapping[encoding]
+    if (encodingMapping[encoding]) encoding = encodingMapping[encoding]
 
     const content = iconv.decode(buffer, encoding)
     let bom = false
 
     // Catches EFBBBF (UTF-8 BOM) because the buffer-to-string
     // conversion translates it to FEFF (UTF-16 BOM)
-    if (buffer[0] === 0xEF && buffer[1] === 0xBB && buffer[2] === 0xBF)
-      bom = true
+    if (buffer[0] === 0xef && buffer[1] === 0xbb && buffer[2] === 0xbf) bom = true
 
     return {
       encoding,

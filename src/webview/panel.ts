@@ -1,6 +1,17 @@
 import path from 'path'
 import fs from 'fs'
-import { WebviewPanel, Disposable, window, ViewColumn, Uri, ExtensionContext, workspace, EventEmitter, Selection, TextEditorRevealType } from 'vscode'
+import {
+  WebviewPanel,
+  Disposable,
+  window,
+  ViewColumn,
+  Uri,
+  ExtensionContext,
+  workspace,
+  EventEmitter,
+  Selection,
+  TextEditorRevealType,
+} from 'vscode'
 import { EXT_EDITOR_ID } from '~/meta'
 import { Protocol } from '~/protocol'
 import i18n from '~/i18n'
@@ -31,8 +42,7 @@ export class EditorPanel {
   }
 
   set mode(v) {
-    if (this._mode !== v)
-      this._mode = v
+    if (this._mode !== v) this._mode = v
   }
 
   public static createOrShow(ctx: ExtensionContext, column?: ViewColumn) {
@@ -52,29 +62,22 @@ export class EditorPanel {
 
   private constructor(ctx: ExtensionContext, panel?: WebviewPanel, column?: ViewColumn) {
     this._ctx = ctx
-    this._panel = panel || window.createWebviewPanel(
-      EXT_EDITOR_ID,
-      i18n.t('editor.title'),
-      column || ViewColumn.Active,
-      {
+    this._panel =
+      panel ||
+      window.createWebviewPanel(EXT_EDITOR_ID, i18n.t('editor.title'), column || ViewColumn.Active, {
         enableScripts: true,
-        localResourceRoots: [
-          Uri.file(path.join(this._ctx.extensionPath, 'res')),
-        ],
+        localResourceRoots: [Uri.file(path.join(this._ctx.extensionPath, 'res'))],
         retainContextWhenHidden: true,
-      },
-    )
+      })
 
     const webview = this._panel.webview
 
     this._protocol = new Protocol(
-      async(message) => {
-        if (message.type === 'switch-to')
-          this.openKey(message.keypath!)
-        else
-          this._panel.webview.postMessage(message)
+      async message => {
+        if (message.type === 'switch-to') this.openKey(message.keypath!)
+        else this._panel.webview.postMessage(message)
       },
-      async(message) => {
+      async message => {
         switch (message.type) {
           case 'webview.refresh':
             this.init()
@@ -99,31 +102,21 @@ export class EditorPanel {
     this._panel.onDidDispose(() => this.dispose(), null, this._disposables)
 
     // Handle messages from the webview
-    this._panel.webview.onDidReceiveMessage(
-      msg => this._protocol.handleMessages(msg),
-      null,
-      this._disposables,
-    )
+    this._panel.webview.onDidReceiveMessage(msg => this._protocol.handleMessages(msg), null, this._disposables)
 
     CurrentFile.loader.onDidChange(
       () => {
-        if (this._editing_key)
-          this.openKey(this._editing_key)
+        if (this._editing_key) this.openKey(this._editing_key)
       },
       null,
       this._disposables,
     )
 
-    workspace.onDidChangeConfiguration(
-      () => this._protocol.updateConfig(),
-      null,
-      this._disposables,
-    )
+    workspace.onDidChangeConfiguration(() => this._protocol.updateConfig(), null, this._disposables)
 
     Global.reviews.onDidChange(
       (keypath?: string) => {
-        if (this._editing_key && (!keypath || this._editing_key === keypath))
-          this.openKey(this._editing_key)
+        if (this._editing_key && (!keypath || this._editing_key === keypath)) this.openKey(this._editing_key)
       },
       null,
       this._disposables,
@@ -133,11 +126,7 @@ export class EditorPanel {
   }
 
   private reveal(column?: ViewColumn) {
-    column = column || (
-      window.activeTextEditor
-        ? window.activeTextEditor.viewColumn
-        : undefined
-    )
+    column = column || (window.activeTextEditor ? window.activeTextEditor.viewColumn : undefined)
     this._panel.reveal(column)
   }
 
@@ -149,17 +138,14 @@ export class EditorPanel {
   }
 
   public sendCurrentFileContext() {
-    if (this.mode === 'standalone')
-      this.setContext({})
+    if (this.mode === 'standalone') this.setContext({})
 
     const doc = window.activeTextEditor?.document
 
-    if (!doc || !Global.isLanguageIdSupported(doc.languageId))
-      return false
+    if (!doc || !Global.isLanguageIdSupported(doc.languageId)) return false
 
     let keys = KeyDetector.getKeys(doc) || []
-    if (!keys.length)
-      return false
+    if (!keys.length) return false
 
     keys = keys.map(k => ({
       ...k,
@@ -191,25 +177,20 @@ export class EditorPanel {
         },
       })
       this.sendCurrentFileContext()
-    }
-    else {
+    } else {
       // TODO: Error
     }
   }
 
-  async navigateKey(data: KeyInDocument & {filepath: string; keyIndex: number}) {
+  async navigateKey(data: KeyInDocument & { filepath: string; keyIndex: number }) {
     Telemetry.track(TelemetryKey.GoToKey, { source: ActionSource.UiEditor })
 
-    if (!data.filepath)
-      return
+    if (!data.filepath) return
 
     this.openKey(data.key, undefined, data.keyIndex)
     const doc = await workspace.openTextDocument(Uri.file(data.filepath))
     const editor = await window.showTextDocument(doc, ViewColumn.One)
-    editor.selection = new Selection(
-      doc.positionAt(data.end),
-      doc.positionAt(data.start),
-    )
+    editor.selection = new Selection(doc.positionAt(data.end), doc.positionAt(data.start))
     editor.revealRange(editor.selection, TextEditorRevealType.InCenter)
   }
 
@@ -224,13 +205,8 @@ export class EditorPanel {
   }
 
   init() {
-    this._panel.iconPath = Uri.file(
-      path.join(this._ctx.extensionPath, 'res/logo.svg'),
-    )
-    this._panel.webview.html = fs.readFileSync(
-      path.join(this._ctx.extensionPath, 'dist/editor/index.html'),
-      'utf-8',
-    )
+    this._panel.iconPath = Uri.file(path.join(this._ctx.extensionPath, 'res/logo.svg'))
+    this._panel.webview.html = fs.readFileSync(path.join(this._ctx.extensionPath, 'dist/editor/index.html'), 'utf-8')
     this._protocol.updateI18nMessages()
   }
 

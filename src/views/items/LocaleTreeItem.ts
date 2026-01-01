@@ -8,13 +8,17 @@ import { Commands } from '~/commands'
 
 export class LocaleTreeItem extends BaseTreeItem {
   public readonly node: Node
-  constructor(ctx: ExtensionContext, node: Node, public flatten = false, public readonly displayLocale?: string, public readonly listedLocales?: string[]) {
+  constructor(
+    ctx: ExtensionContext,
+    node: Node,
+    public flatten = false,
+    public readonly displayLocale?: string,
+    public readonly listedLocales?: string[],
+  ) {
     super(ctx)
 
-    if (node.type !== 'record')
-      this.node = resolveFlattenRoot(node)
-    else
-      this.node = node
+    if (node.type !== 'record') this.node = resolveFlattenRoot(node)
+    else this.node = node
   }
 
   // @ts-expect-error
@@ -25,8 +29,7 @@ export class LocaleTreeItem extends BaseTreeItem {
   getLabel(): string {
     if (this.node.type === 'record') {
       return decorateLocale(this.node.locale)
-    }
-    else {
+    } else {
       return this.flatten
         ? resolveFlattenRootKeypath(this.node.keypath)
         : this.node.keyname === ROOT_KEY
@@ -37,44 +40,32 @@ export class LocaleTreeItem extends BaseTreeItem {
 
   // @ts-expect-error
   get collapsibleState() {
-    if (this.node.type === 'record' || this.editorMode)
-      return TreeItemCollapsibleState.None
-    else
-      return TreeItemCollapsibleState.Collapsed
+    if (this.node.type === 'record' || this.editorMode) return TreeItemCollapsibleState.None
+    else return TreeItemCollapsibleState.Collapsed
   }
 
-  set collapsibleState(_) { }
+  set collapsibleState(_) {}
 
   // @ts-expect-error
   get description(): string {
-    if (this.node.type === 'node')
-      return this.node.getValue(this.displayLocale, true)
-    if (this.node.type === 'record')
-      return this.node.value
+    if (this.node.type === 'node') return this.node.getValue(this.displayLocale, true)
+    if (this.node.type === 'record') return this.node.value
     return ''
   }
 
   // @ts-expect-error
   get iconPath() {
-    if (Translator.isTranslating(this.node))
-      return this.getIcon('loading')
+    if (Translator.isTranslating(this.node)) return this.getIcon('loading')
     if (this.node.type === 'record') {
       return this.getFlagIcon(this.node.locale)
-    }
-    else if (this.node.shadow) {
+    } else if (this.node.shadow) {
       return this.getIcon('icon-unknown')
-    }
-    else if (this.node.type === 'tree') {
-      if (this.node.isCollection)
-        return this.getIcon('collection')
-      else
-        return this.getIcon('namespace')
-    }
-    else if (this.node.type === 'node') {
-      if (this.description)
-        return this.getIcon('string')
-      else
-        return this.getIcon('string-missing')
+    } else if (this.node.type === 'tree') {
+      if (this.node.isCollection) return this.getIcon('collection')
+      else return this.getIcon('namespace')
+    } else if (this.node.type === 'node') {
+      if (this.description) return this.getIcon('string')
+      else return this.getIcon('string-missing')
     }
   }
 
@@ -82,21 +73,15 @@ export class LocaleTreeItem extends BaseTreeItem {
   get contextValue() {
     const values: string[] = [this.node.type]
 
-    if (this.node.readonly)
-      values.push('readonly')
-    else
-      values.push('writable')
+    if (this.node.readonly) values.push('readonly')
+    else values.push('writable')
 
-    if (NodeHelper.isOpenable(this.node))
-      values.push('openable')
+    if (NodeHelper.isOpenable(this.node)) values.push('openable')
 
     if (!this.editorMode) {
-      if (NodeHelper.isTranslatable(this.node))
-        values.push('translatable')
-      if (NodeHelper.isEditable(this.node))
-        values.push('editable')
-      if (this.node.type !== 'tree')
-        values.push('open-in-editor')
+      if (NodeHelper.isTranslatable(this.node)) values.push('translatable')
+      if (NodeHelper.isEditable(this.node)) values.push('editable')
+      if (this.node.type !== 'tree') values.push('open-in-editor')
     }
 
     return values.join('-')
@@ -107,17 +92,13 @@ export class LocaleTreeItem extends BaseTreeItem {
   }
 
   async getChildren(filter: (node: Node) => boolean = () => true) {
-    if (this.editorMode)
-      return []
+    if (this.editorMode) return []
 
     let nodes: Node[] = []
-    if (this.node.type === 'tree')
-      nodes = Object.values(this.node.children)
+    if (this.node.type === 'tree') nodes = Object.values(this.node.children)
     else if (this.node.type === 'node')
       nodes = Object.values(CurrentFile.loader.getShadowLocales(this.node, this.listedLocales))
-    const items = nodes
-      .filter(filter)
-      .map(node => new LocaleTreeItem(this.ctx, node, false))
+    const items = nodes.filter(filter).map(node => new LocaleTreeItem(this.ctx, node, false))
     return items
   }
 

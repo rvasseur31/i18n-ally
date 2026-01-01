@@ -11,28 +11,15 @@ class NextInternationalFramework extends Framework {
   perferredKeystyle?: KeyStyle = 'flat'
 
   namespaceDelimiters = ['.']
-  namespaceDelimitersRegex = /[\.]/g
+  namespaceDelimitersRegex = /[.]/g
 
   detection = {
-    packageJSON: [
-      'next-international',
-    ],
+    packageJSON: ['next-international'],
   }
 
-  languageIds: LanguageId[] = [
-    'javascript',
-    'typescript',
-    'javascriptreact',
-    'typescriptreact',
-  ]
+  languageIds: LanguageId[] = ['javascript', 'typescript', 'javascriptreact', 'typescriptreact']
 
-  supportAutoExtraction = [
-    'javascript',
-    'typescript',
-    'javascriptreact',
-    'typescriptreact',
-    'html',
-  ]
+  supportAutoExtraction = ['javascript', 'typescript', 'javascriptreact', 'typescriptreact', 'html']
 
   usageMatchRegex = [
     // Basic usage
@@ -52,15 +39,15 @@ class NextInternationalFramework extends Framework {
         DefaultDynamicExtractionsRules,
         Config.extractParserHTMLOptions,
         // <script>
-        script => extractionsParsers.babel.detect(
-          script,
-          DefaultExtractionRules,
-          DefaultDynamicExtractionsRules,
-          Config.extractParserBabelOptions,
-        ),
+        script =>
+          extractionsParsers.babel.detect(
+            script,
+            DefaultExtractionRules,
+            DefaultDynamicExtractionsRules,
+            Config.extractParserBabelOptions,
+          ),
       )
-    }
-    else {
+    } else {
       return extractionsParsers.babel.detect(
         text,
         DefaultExtractionRules,
@@ -68,8 +55,7 @@ class NextInternationalFramework extends Framework {
         {},
         (path, recordIgnore) => {
           const callee = path.get('callee')
-          if (callee.node.name === 't' || callee.node.name === 'scopedT')
-            recordIgnore(path)
+          if (callee.node.name === 't' || callee.node.name === 'scopedT') recordIgnore(path)
         },
       )
     }
@@ -79,14 +65,7 @@ class NextInternationalFramework extends Framework {
     const keypaths = keypath.split('.').map((_, index, parts) => {
       return parts.slice(parts.length - index - 1).join('.')
     })
-    return [
-      ...keypaths.map(cur =>
-        `{t('${cur}')}`,
-      ),
-      ...keypaths.map(cur =>
-        `t('${cur}')`,
-      ),
-    ]
+    return [...keypaths.map(cur => `{t('${cur}')}`), ...keypaths.map(cur => `t('${cur}')`)]
   }
 
   rewriteKeys(key: string, source: RewriteKeySource, context: RewriteKeyContext = {}) {
@@ -94,9 +73,9 @@ class NextInternationalFramework extends Framework {
 
     // When the namespace is explicitly set, ignore the current namespace scope
     if (
-      this.namespaceDelimiters.some(delimiter => key.includes(delimiter))
-      && context.namespace
-      && dottedKey.startsWith(context.namespace.split(this.namespaceDelimitersRegex).join('.'))
+      this.namespaceDelimiters.some(delimiter => key.includes(delimiter)) &&
+      context.namespace &&
+      dottedKey.startsWith(context.namespace.split(this.namespaceDelimitersRegex).join('.'))
     ) {
       // +1 for the an extra `.`
       key = key.slice(context.namespace.length + 1)
@@ -106,8 +85,7 @@ class NextInternationalFramework extends Framework {
   }
 
   getScopeRange(document: TextDocument): ScopeRange[] | undefined {
-    if (!this.languageIds.includes(document.languageId as any))
-      return
+    if (!this.languageIds.includes(document.languageId as any)) return
 
     const ranges: ScopeRange[] = []
     const text = document.getText()
@@ -116,8 +94,7 @@ class NextInternationalFramework extends Framework {
     const namespaceMatchArray = [...text.matchAll(useScopedTRegex)]
     for (let i = 0; i < namespaceMatchArray.length; i++) {
       const currentNamespaceMatch = namespaceMatchArray[i]
-      if (typeof currentNamespaceMatch.index !== 'number')
-        continue
+      if (typeof currentNamespaceMatch.index !== 'number') continue
 
       const nextNamespaceMatch = namespaceMatchArray[i + 1]
 
@@ -126,8 +103,7 @@ class NextInternationalFramework extends Framework {
       const namespace = currentNamespaceMatch[2]
       const scopedTRegex = /scopedT\([\n\s]*['"`](.*?)['"`]/g
       for (const match of scopedText.matchAll(scopedTRegex)) {
-        if (typeof match.index !== 'number')
-          continue
+        if (typeof match.index !== 'number') continue
         ranges.push({
           start: currentNamespaceMatch.index + match.index,
           end: currentNamespaceMatch.index + match.index + match[0].length,

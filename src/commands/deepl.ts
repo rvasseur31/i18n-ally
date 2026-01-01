@@ -10,9 +10,7 @@ async function deepAuth() {
   const apiKey = Config.deeplApiKey
 
   if (!apiKey) {
-    return window.showErrorMessage(
-      i18n.t('prompt.deepl_api_key_required'),
-    )
+    return window.showErrorMessage(i18n.t('prompt.deepl_api_key_required'))
   }
 
   try {
@@ -26,14 +24,11 @@ async function deepAuth() {
       ),
       i18n.t('prompt.button_discard'),
     )
-  }
-  catch (err) {
+  } catch {
     window.showErrorMessage(i18n.t('prompt.deepl_error_get_usage'))
   }
 }
 
-export default <ExtensionModule> function() {
-  return [
-    commands.registerCommand(Commands.deepl_usage, deepAuth),
-  ]
-}
+export default (<ExtensionModule>function () {
+  return [commands.registerCommand(Commands.deepl_usage, deepAuth)]
+})

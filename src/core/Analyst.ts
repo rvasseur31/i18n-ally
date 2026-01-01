@@ -18,8 +18,7 @@ export class Analyst {
   }
 
   static invalidateCacheOf(filepath: string) {
-    if (this._cache)
-      this._cache = this._cache.filter(o => o.filepath !== filepath)
+    if (this._cache) this._cache = this._cache.filter(o => o.filepath !== filepath)
   }
 
   static watch() {
@@ -31,15 +30,12 @@ export class Analyst {
   }
 
   static refresh() {
-    if (this.hasCache())
-      this.analyzeUsage(true)
+    if (this.hasCache()) this.analyzeUsage(true)
   }
 
   private static async updateCache(doc: TextDocument) {
-    if (!this._cache)
-      return
-    if (!Global.isLanguageIdSupported(doc.languageId))
-      return
+    if (!this._cache) return
+    if (!Global.isLanguageIdSupported(doc.languageId)) return
 
     const filepath = doc.uri.fsPath
     Log.info(`🔄 Update usage cache of ${filepath}`)
@@ -56,8 +52,7 @@ export class Analyst {
 
   private static async getOccurrencesOfFile(filepath: string) {
     let doc = workspace.textDocuments.find(doc => doc.uri.fsPath === filepath)
-    if (!doc)
-      doc = await workspace.openTextDocument(Uri.file(filepath))
+    if (!doc) doc = await workspace.openTextDocument(Uri.file(filepath))
     return await this.getOccurrencesOfText(doc, filepath)
   }
 
@@ -78,21 +73,18 @@ export class Analyst {
   }
 
   static async getAllOccurrences(targetKey?: string, useCache = true) {
-    if (!useCache)
-      this._cache = null
+    if (!useCache) this._cache = null
 
     if (!this._cache) {
       const occurrences: KeyOccurrence[] = []
       const filepaths = await this.enumerateDocumentPaths()
 
-      for (const filepath of filepaths)
-        occurrences.push(...await this.getOccurrencesOfFile(filepath))
+      for (const filepath of filepaths) occurrences.push(...(await this.getOccurrencesOfFile(filepath)))
 
       this._cache = occurrences
     }
 
-    if (targetKey)
-      return this._cache.filter(({ keypath }) => keypath === targetKey)
+    if (targetKey) return this._cache.filter(({ keypath }) => keypath === targetKey)
     return this._cache
   }
 
@@ -103,10 +95,7 @@ export class Analyst {
 
   static async getLocationOf(occurrence: KeyOccurrence) {
     const document = await workspace.openTextDocument(occurrence.filepath)
-    const range = new Range(
-      document.positionAt(occurrence.start),
-      document.positionAt(occurrence.end),
-    )
+    const range = new Range(document.positionAt(occurrence.start), document.positionAt(occurrence.end))
     return new Location(document.uri, range)
   }
 
@@ -116,12 +105,16 @@ export class Analyst {
 
   static async analyzeUsage(useCache = true): Promise<UsageReport> {
     const occurrences = await this.getAllOccurrences(undefined, useCache)
-    const usages: KeyUsage[] = Object.values(occurrences.reduce((acc, occurrence) => {
-      if (!acc[occurrence.keypath])
-        acc[occurrence.keypath] = { keypath: occurrence.keypath, occurrences: [] }
-      acc[occurrence.keypath].occurrences.push(occurrence)
-      return acc
-    }, {} as Record<string, KeyUsage>))
+    const usages: KeyUsage[] = Object.values(
+      occurrences.reduce(
+        (acc, occurrence) => {
+          if (!acc[occurrence.keypath]) acc[occurrence.keypath] = { keypath: occurrence.keypath, occurrences: [] }
+          acc[occurrence.keypath].occurrences.push(occurrence)
+          return acc
+        },
+        {} as Record<string, KeyUsage>,
+      ),
+    )
 
     // all the keys you have
     const allKeys = CurrentFile.loader.keys.map(i => this.normalizeKey(i))
@@ -130,19 +123,16 @@ export class Analyst {
     // keys in use
     const activeKeys = inUseKeys.filter(i => allKeys.includes(i))
     // keys not in use
-    let idleKeys = allKeys
-      .filter(i => !inUseKeys.includes(i))
-      .filter(i => !micromatch.isMatch(i, Config.keysInUse))
+    let idleKeys = allKeys.filter(i => !inUseKeys.includes(i)).filter(i => !micromatch.isMatch(i, Config.keysInUse))
     // keys in use, but actually you don't have them
     let missingKeys = inUseKeys.filter(i => !allKeys.includes(i))
 
     const rules = Global.derivedKeyRules
     // remove derived keys from idle, if the source key is in use
-    idleKeys = idleKeys.filter((key) => {
+    idleKeys = idleKeys.filter(key => {
       for (const r of rules) {
         const match = r.exec(key)
-        if (match && match[1] && activeKeys.includes(match[1]))
-          return false
+        if (match && match[1] && activeKeys.includes(match[1])) return false
       }
       return true
     })
@@ -153,7 +143,7 @@ export class Analyst {
     // - remove the source key from missing
     // - remove the derived key from idle
     const missingKeysShouldBeActive: string[] = []
-    idleKeys = idleKeys.filter((key) => {
+    idleKeys = idleKeys.filter(key => {
       for (const r of rules) {
         const match = r.exec(key)
         if (match && match[1] && missingKeys.includes(match[1])) {

@@ -10,7 +10,9 @@ export class LocalesTreeProvider implements TreeDataProvider<LocaleTreeItem> {
   protected loader: Loader
   protected name = 'LocalesTreeProvider'
   private _flatten: boolean
-  private _onDidChangeTreeData: EventEmitter<LocaleTreeItem | undefined> = new EventEmitter<LocaleTreeItem | undefined>()
+  private _onDidChangeTreeData: EventEmitter<LocaleTreeItem | undefined> = new EventEmitter<
+    LocaleTreeItem | undefined
+  >()
   readonly onDidChangeTreeData: Event<LocaleTreeItem | undefined> = this._onDidChangeTreeData.event
 
   constructor(
@@ -46,18 +48,14 @@ export class LocalesTreeProvider implements TreeDataProvider<LocaleTreeItem> {
   }
 
   private filter(node: Node, root = false): boolean {
-    if (!this.includePaths)
-      return true
+    if (!this.includePaths) return true
 
     const flatten = resolveFlattenRootKeypath(node.keypath)
 
     for (const includePath of this.includePaths) {
-      if (includePath.startsWith(node.keypath))
-        return true
-      if (!root && node.keypath.startsWith(includePath))
-        return true
-      if (this.flatten && flatten !== node.keypath && flatten === includePath)
-        return true
+      if (includePath.startsWith(node.keypath)) return true
+      if (!root && node.keypath.startsWith(includePath)) return true
+      if (this.flatten && flatten !== node.keypath && flatten === includePath) return true
     }
     return false
   }
@@ -67,23 +65,17 @@ export class LocalesTreeProvider implements TreeDataProvider<LocaleTreeItem> {
   }
 
   protected getRoots() {
-    if (!this.loader)
-      return []
+    if (!this.loader) return []
 
-    const nodes = this.flatten
-      ? Object.values(this.loader.flattenLocaleTree)
-      : Object.values(this.loader.root.children)
+    const nodes = this.flatten ? Object.values(this.loader.flattenLocaleTree) : Object.values(this.loader.root.children)
 
-    return nodes
-      .filter(node => this.filter(node, true))
-      .map(node => new LocaleTreeItem(this.ctx, node, this.flatten))
+    return nodes.filter(node => this.filter(node, true)).map(node => new LocaleTreeItem(this.ctx, node, this.flatten))
   }
 
   sort(elements: LocaleTreeItem[]) {
     return elements.sort((a, b) => {
       const diff = a.node.type.localeCompare(b.node.type)
-      if (diff !== 0)
-        return diff
+      if (diff !== 0) return diff
       return a.node.keypath.localeCompare(b.node.keypath)
     })
   }
@@ -91,10 +83,8 @@ export class LocalesTreeProvider implements TreeDataProvider<LocaleTreeItem> {
   async getChildren(element?: LocaleTreeItem) {
     let elements: LocaleTreeItem[] = []
 
-    if (element)
-      elements = await element.getChildren(node => this.filter(node, true))
-    else
-      elements = this.getRoots()
+    if (element) elements = await element.getChildren(node => this.filter(node, true))
+    else elements = this.getRoots()
 
     return this.sort(elements)
   }

@@ -8,16 +8,10 @@ export default class TranslocoFramework extends Framework {
   display = 'Angular Transloco'
 
   detection = {
-    packageJSON: [
-      '@ngneat/transloco',
-    ],
+    packageJSON: ['@ngneat/transloco'],
   }
 
-  languageIds: LanguageId[] = [
-    'javascript',
-    'typescript',
-    'html',
-  ]
+  languageIds: LanguageId[] = ['javascript', 'typescript', 'html']
 
   usageMatchRegex = [
     // https://ngneat.github.io/transloco/docs/translation-in-the-template#pipe
@@ -31,30 +25,23 @@ export default class TranslocoFramework extends Framework {
   ]
 
   refactorTemplates(keypath: string) {
-    return [
-      `{{ '${keypath}' | transloco }}`,
-      `t('${keypath}')`,
-      keypath,
-    ]
+    return [`{{ '${keypath}' | transloco }}`, `t('${keypath}')`, keypath]
   }
 
   rewriteKeys(key: string) {
     // find extra scope
-    const regex = /[\'"`]([\w.]+)[\'"`]/gm
+    const regex = /['"`]([\w.]+)['"`]/gm
     let index = 0
     let match, actualKey, scope
 
     // eslint-disable-next-line no-cond-assign
     while ((match = regex.exec(key)) !== null) {
       // this is necessary to avoid infinite loops with zero-width matches
-      if (match.index === regex.lastIndex)
-        regex.lastIndex++
+      if (match.index === regex.lastIndex) regex.lastIndex++
 
-      if (index === 0)
-        actualKey = match[1]
+      if (index === 0) actualKey = match[1]
 
-      if (index === 1)
-        scope = match[1]
+      if (index === 1) scope = match[1]
 
       index++
     }
@@ -66,8 +53,7 @@ export default class TranslocoFramework extends Framework {
   // support for `read` syntax
   // https://ngneat.github.io/transloco/docs/translation-in-the-template#utilizing-the-read-input
   getScopeRange(document: TextDocument): ScopeRange[] | undefined {
-    if (document.languageId !== 'html')
-      return
+    if (document.languageId !== 'html') return
 
     const ranges: ScopeRange[] = []
 
@@ -83,8 +69,7 @@ export default class TranslocoFramework extends Framework {
           tagStack.push(name)
           const attr = attribs['*transloco']
           if (attr && parser.endIndex != null) {
-            if (!regex.test(attr))
-              return
+            if (!regex.test(attr)) return
             namespace = attr.replace(regex, '$1')
             start = parser.startIndex
             stackDepth = tagStack.length

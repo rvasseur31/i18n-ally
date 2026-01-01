@@ -10,34 +10,26 @@ class NextIntlFramework extends Framework {
   perferredKeystyle?: KeyStyle = 'nested'
 
   namespaceDelimiters = ['.']
-  namespaceDelimitersRegex = /[\.]/g
+  namespaceDelimitersRegex = /[.]/g
 
   detection = {
-    packageJSON: [
-      'next-intl',
-    ],
+    packageJSON: ['next-intl'],
   }
 
-  languageIds: LanguageId[] = [
-    'javascript',
-    'typescript',
-    'javascriptreact',
-    'typescriptreact',
-    'ejs',
-  ]
+  languageIds: LanguageId[] = ['javascript', 'typescript', 'javascriptreact', 'typescriptreact', 'ejs']
 
   usageMatchRegex = [
     // Basic usage
     '[^\\w\\d]t\\s*\\(\\s*[\'"`]({key})[\'"`]',
 
     // Rich text
-    '[^\\w\\d]t\\s*\.rich\\s*\\(\\s*[\'"`]({key})[\'"`]',
+    '[^\\w\\d]t\\s*.rich\\s*\\(\\s*[\'"`]({key})[\'"`]',
 
     // Markup text
-    '[^\\w\\d]t\\s*\.markup\\s*\\(\\s*[\'"`]({key})[\'"`]',
+    '[^\\w\\d]t\\s*.markup\\s*\\(\\s*[\'"`]({key})[\'"`]',
 
     // Raw text
-    '[^\\w\\d]t\\s*\.raw\\s*\\(\\s*[\'"`]({key})[\'"`]',
+    '[^\\w\\d]t\\s*.raw\\s*\\(\\s*[\'"`]({key})[\'"`]',
   ]
 
   refactorTemplates(keypath: string) {
@@ -49,14 +41,7 @@ class NextIntlFramework extends Framework {
     const keypaths = keypath.split('.').map((cur, index, parts) => {
       return parts.slice(parts.length - index - 1).join('.')
     })
-    return [
-      ...keypaths.map(cur =>
-        `{t('${cur}')}`,
-      ),
-      ...keypaths.map(cur =>
-        `t('${cur}')`,
-      ),
-    ]
+    return [...keypaths.map(cur => `{t('${cur}')}`), ...keypaths.map(cur => `t('${cur}')`)]
   }
 
   rewriteKeys(key: string, source: RewriteKeySource, context: RewriteKeyContext = {}) {
@@ -64,9 +49,9 @@ class NextIntlFramework extends Framework {
 
     // When the namespace is explicitly set, ignore the current namespace scope
     if (
-      this.namespaceDelimiters.some(delimiter => key.includes(delimiter))
-      && context.namespace
-      && dottedKey.startsWith(context.namespace.split(this.namespaceDelimitersRegex).join('.'))
+      this.namespaceDelimiters.some(delimiter => key.includes(delimiter)) &&
+      context.namespace &&
+      dottedKey.startsWith(context.namespace.split(this.namespaceDelimitersRegex).join('.'))
     ) {
       // +1 for the an extra `.`
       key = key.slice(context.namespace.length + 1)
@@ -76,8 +61,7 @@ class NextIntlFramework extends Framework {
   }
 
   getScopeRange(document: TextDocument): ScopeRange[] | undefined {
-    if (!this.languageIds.includes(document.languageId as any))
-      return
+    if (!this.languageIds.includes(document.languageId as any)) return
 
     const ranges: ScopeRange[] = []
     const text = document.getText()
@@ -89,14 +73,12 @@ class NextIntlFramework extends Framework {
     const regex = /(useTranslations\(\s*|getTranslations\(\s*|namespace:\s+)(['"`](.*?)['"`])?/g
     let prevGlobalScope = false
     for (const match of text.matchAll(regex)) {
-      if (typeof match.index !== 'number')
-        continue
+      if (typeof match.index !== 'number') continue
 
       const namespace = match[3]
 
       // End previous scope
-      if (prevGlobalScope)
-        ranges[ranges.length - 1].end = match.index
+      if (prevGlobalScope) ranges[ranges.length - 1].end = match.index
 
       // Start a new scope if a namespace is provided
       if (namespace) {

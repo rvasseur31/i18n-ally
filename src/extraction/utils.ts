@@ -1,7 +1,7 @@
 import { DetectionResult } from '~/core/types'
 
-const regexLeading = /^[\s\n]*/mg
-const regexTailing = /[\s\n]+$/mg
+const regexLeading = /^[\s\n]*/gm
+const regexTailing = /[\s\n]+$/gm
 
 export function trimDetection(detection: DetectionResult): DetectionResult | undefined {
   const leadingSpace = detection.text.match(regexLeading)?.[0] || ''
@@ -9,8 +9,7 @@ export function trimDetection(detection: DetectionResult): DetectionResult | und
   detection.start += leadingSpace.length
   detection.end -= tailingSpace.length
 
-  if (detection.start >= detection.end)
-    return undefined
+  if (detection.start >= detection.end) return undefined
 
   return detection
 }

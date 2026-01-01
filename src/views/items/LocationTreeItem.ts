@@ -1,7 +1,10 @@
 import { ExtensionContext, TreeItem, Location, Command } from 'vscode'
 
 export class LocationTreeItem extends TreeItem {
-  constructor(ctx: ExtensionContext, public readonly location: Location) {
+  constructor(
+    ctx: ExtensionContext,
+    public readonly location: Location,
+  ) {
     super(location.uri)
   }
 

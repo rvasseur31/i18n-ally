@@ -14,13 +14,12 @@ export class PoParser extends Parser {
     const items = PO.parse(text).items
     const result: Record<string, string> = {}
     for (const item of items) {
-      if (item.msgstr.length)
-        result[item.msgid] = item.msgstr[0]
+      if (item.msgstr.length) result[item.msgid] = item.msgstr[0]
     }
     return result
   }
 
-  async dump(object: object) {
+  async dump(_object: object) {
     return ''
   }
 }

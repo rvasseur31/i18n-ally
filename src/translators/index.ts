@@ -1,19 +1,19 @@
 import TranslateEngine, { TranslateOptions } from './engines/base'
 import GoogleTranslateEngine from './engines/google'
 import GoogleTranslateCnEngine from './engines/google-cn'
-import {DeepLTranslateEngine} from './engines/deepl'
+import { DeepLTranslateEngine } from './engines/deepl'
 import LibreTranslateEngine from './engines/libretranslate'
 import BaiduTranslate from './engines/baidu'
 import OpenAITranslateEngine from './engines/openai'
 
 export class Translator {
-  engines: Record<string, TranslateEngine> ={
-    'google': new GoogleTranslateEngine(),
+  engines: Record<string, TranslateEngine> = {
+    google: new GoogleTranslateEngine(),
     'google-cn': new GoogleTranslateCnEngine(),
-    'deepl': new DeepLTranslateEngine(),
-    'libretranslate': new LibreTranslateEngine(),
-    'baidu': new BaiduTranslate(),
-    'openai': new OpenAITranslateEngine(),
+    deepl: new DeepLTranslateEngine(),
+    libretranslate: new LibreTranslateEngine(),
+    baidu: new BaiduTranslate(),
+    openai: new OpenAITranslateEngine(),
   }
 
   async translate(options: TranslateOptions & { engine: string }) {

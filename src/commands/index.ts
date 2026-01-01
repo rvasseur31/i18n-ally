@@ -13,7 +13,7 @@ import gotoNextUsage from './gotoNextUsage'
 import batchHardStringsExtract from './extractStringBulk'
 import { ExtensionModule } from '~/modules'
 
-const m: ExtensionModule = (ctx) => {
+const m: ExtensionModule = ctx => {
   return [
     configLocales(ctx),
     configLanguages(ctx),

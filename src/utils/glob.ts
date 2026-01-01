@@ -13,25 +13,17 @@ export async function gitignoredGlob(globStr: string, dir: string) {
   const gitignorePath = join(root, '.gitignore')
   let gitignore = []
   try {
-    if (fs.existsSync(gitignorePath))
-      gitignore = parseGitIgnore(await fs.promises.readFile(gitignorePath))
-  }
-  catch (e) {
+    if (fs.existsSync(gitignorePath)) gitignore = parseGitIgnore(await fs.promises.readFile(gitignorePath))
+  } catch (e) {
     Log.error(e)
   }
 
-  const ignore = [
-    'node_modules',
-    'dist',
-    ...gitignore,
-    ...Global.localesPaths || [],
-    ...Config.usageScanningIgnore,
-  ]
+  const ignore = ['node_modules', 'dist', ...gitignore, ...(Global.localesPaths || []), ...Config.usageScanningIgnore]
 
-  const files = await glob(globStr, {
+  const files = (await glob(globStr, {
     cwd: dir,
     ignore,
-  }) as string[]
+  })) as string[]
 
   return files.map(f => resolve(dir, f))
 }

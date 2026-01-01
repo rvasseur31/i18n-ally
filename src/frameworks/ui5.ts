@@ -6,17 +6,10 @@ class UI5Framework extends Framework {
   display = 'SAP UI5'
 
   detection = {
-    packageJSON: [
-      '@ui5/cli',
-    ],
+    packageJSON: ['@ui5/cli'],
   }
 
-  languageIds: LanguageId[] = [
-    'json',
-    'xml',
-    'javascript',
-    'typescript',
-  ]
+  languageIds: LanguageId[] = ['json', 'xml', 'javascript', 'typescript']
 
   // for visualize the regex, you can use https://regexper.com/
   usageMatchRegex = [
@@ -26,19 +19,13 @@ class UI5Framework extends Framework {
   ]
 
   refactorTemplates(keypath: string) {
-    return [
-      `{i18n>${keypath}}`,
-      `this.getResourceBundle().getText("${keypath}")`,
-      `{{${keypath}}}`,
-      keypath,
-    ]
+    return [`{i18n>${keypath}}`, `this.getResourceBundle().getText("${keypath}")`, `{{${keypath}}}`, keypath]
   }
 
   rewriteKeys(key: string) {
     const regexI8n = /i18n>([\w\d\-.]*)/gm
     const matches = regexI8n.exec(key)
-    if (matches && matches.length > 1)
-      key = matches[1]
+    if (matches && matches.length > 1) key = matches[1]
     return key
   }
 
@@ -52,9 +39,7 @@ class UI5Framework extends Framework {
     LinkedMessages: true,
   }
 
-  preferredLocalePaths = [
-    'webapp/i18n',
-  ]
+  preferredLocalePaths = ['webapp/i18n']
 
   preferredKeystyle = 'flat' as const
 }

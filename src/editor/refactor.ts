@@ -1,4 +1,12 @@
-import { CodeActionProvider, CodeActionKind, TextDocument, Range, CodeAction, languages, CodeActionContext } from 'vscode'
+import {
+  CodeActionProvider,
+  CodeActionKind,
+  TextDocument,
+  Range,
+  CodeAction,
+  languages,
+  CodeActionContext,
+} from 'vscode'
 import { DiagnosticWithKey, PROBLEM_KEY_MISSING, PROBLEM_TRANSLATION_MISSING } from './problems'
 import { ExtensionModule } from '~/modules'
 import { Commands } from '~/commands'
@@ -11,12 +19,13 @@ export class Refactor implements CodeActionProvider {
     range: Range,
     context: CodeActionContext,
   ): CodeAction[] | undefined {
-    const diagnostic = context.diagnostics.find(i => i.code === PROBLEM_KEY_MISSING || i.code === PROBLEM_TRANSLATION_MISSING) as DiagnosticWithKey | undefined
+    const diagnostic = context.diagnostics.find(
+      i => i.code === PROBLEM_KEY_MISSING || i.code === PROBLEM_TRANSLATION_MISSING,
+    ) as DiagnosticWithKey | undefined
 
     const key = diagnostic?.key
 
-    if (!diagnostic || !key)
-      return
+    if (!diagnostic || !key) return
 
     const actions = []
 
@@ -41,10 +50,12 @@ export class Refactor implements CodeActionProvider {
     action.command = {
       title,
       command: Commands.edit_key,
-      arguments: [{
-        keypath: key,
-        locale: Config.displayLanguage,
-      }],
+      arguments: [
+        {
+          keypath: key,
+          locale: Config.displayLanguage,
+        },
+      ],
     }
     return action
   }
@@ -57,11 +68,13 @@ export class Refactor implements CodeActionProvider {
     action.command = {
       title,
       command: Commands.translate_key,
-      arguments: [{
-        keypath: key,
-        locale: to,
-        from,
-      }],
+      arguments: [
+        {
+          keypath: key,
+          locale: to,
+          from,
+        },
+      ],
     }
     return action
   }
@@ -69,16 +82,9 @@ export class Refactor implements CodeActionProvider {
 
 const m: ExtensionModule = () => {
   return [
-    languages.registerCodeActionsProvider(
-      '*',
-      new Refactor(),
-      {
-        providedCodeActionKinds: [
-          CodeActionKind.Refactor,
-          CodeActionKind.QuickFix,
-        ],
-      },
-    ),
+    languages.registerCodeActionsProvider('*', new Refactor(), {
+      providedCodeActionKinds: [CodeActionKind.Refactor, CodeActionKind.QuickFix],
+    }),
   ]
 }
 

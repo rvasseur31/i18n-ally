@@ -4,20 +4,16 @@ import { BaseTagSystem } from './base'
 // LegacyTagSystem used before v2.x
 export class LegacyTagSystem extends BaseTagSystem {
   normalize(locale?: string, fallback = 'en', strict = false) {
-    if (!locale)
-      return fallback
+    if (!locale) return fallback
 
     try {
       locale = locale.replace(/_/g, '-')
-      if (locale.split('-')[0].length !== 2)
-        return fallback
+      if (locale.split('-')[0].length !== 2) return fallback
       // @ts-ignore
       const canonical = Intl.getCanonicalLocales(locale)[0]
-      if (strict)
-        return Intl.Collator.supportedLocalesOf(canonical, { localeMatcher: 'lookup' })[0]
+      if (strict) return Intl.Collator.supportedLocalesOf(canonical, { localeMatcher: 'lookup' })[0]
       return canonical
-    }
-    catch (e) {
+    } catch {
       return fallback
     }
   }

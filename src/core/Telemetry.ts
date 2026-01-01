@@ -40,7 +40,7 @@ export enum TelemetryKey {
   TranslateKey = 'translate_key',
   Updated = 'updated',
   ReviewEditComment = 'review_edit_comment',
-  ReviewResolveComment = 'review_resolve_comment'
+  ReviewResolveComment = 'review_resolve_comment',
 }
 
 export enum ActionSource {
@@ -50,43 +50,38 @@ export enum ActionSource {
   Hover = 'hover',
   ContextMenu = 'context_menu',
   UiEditor = 'ui_editor',
-  Review = 'review'
+  Review = 'review',
 }
 
 export class Telemetry {
   private static _userProperties: object
-  private static _amplitude: amplitude.Types.NodeClient
+  private static _amplitude: ReturnType<typeof amplitude.createInstance>
 
   static async track(key: TelemetryKey, properties?: Record<string, any>, immediate = false) {
     const isEnabled = Config.telemetry && !isTest
-    if (!isEnabled)
-      return
+    if (!isEnabled) return
 
     try {
       this._initializeAmplitude()
 
       this._amplitude.track(key, properties, this._getUserProperties())
 
-      if (immediate)
-        this._amplitude.flush()
+      if (immediate) this._amplitude.flush()
 
-      if (isDev)
-        Log.info(`[telemetry] ${key}: ${JSON.stringify(properties)}`)
-    }
-    catch (e) {
+      if (isDev) Log.info(`[telemetry] ${key}: ${JSON.stringify(properties)}`)
+    } catch (e) {
       Log.error(e, false)
     }
   }
 
   static getActionSource(item?: LocaleTreeItem | ProgressSubmenuItem | CommandOptions) {
-    return (item instanceof LocaleTreeItem || item instanceof ProgressSubmenuItem)
+    return item instanceof LocaleTreeItem || item instanceof ProgressSubmenuItem
       ? ActionSource.TreeView
       : item?.actionSource || ActionSource.CommandPattele
   }
 
   private static _initializeAmplitude() {
-    if (this._amplitude)
-      return
+    if (this._amplitude) return
 
     this._amplitude = amplitude.createInstance()
 
@@ -101,7 +96,7 @@ export class Telemetry {
   }
 
   private static _getUserId() {
-    let userId = Config.ctx.globalState.get('i18n-ally.telemetry-user-id') ?? ''
+    let userId = Config.ctx.globalState.get<string>('i18n-ally.telemetry-user-id') ?? ''
     if (!userId) {
       userId = randomUUID()
       Config.ctx.globalState.update('i18n-ally.telemetry-user-id', userId)

@@ -27,14 +27,11 @@ function log(inspector: boolean, ...args: any[]): void {
 }
 
 async function fetchDeepl<T>(url: string, options: RequestInit & { data?: any } = {}) {
-  const baseURL = Config.deeplUseFreeApiEntry
-    ? 'https://api-free.deepl.com/v2'
-    : 'https://api.deepl.com/v2'
+  const baseURL = Config.deeplUseFreeApiEntry ? 'https://api-free.deepl.com/v2' : 'https://api.deepl.com/v2'
 
   const fullUrl = new URL(url.startsWith('/') ? url.slice(1) : url, `${baseURL}/`)
 
-  if (Config.deeplApiKey)
-    fullUrl.searchParams.append('auth_key', Config.deeplApiKey)
+  if (Config.deeplApiKey) fullUrl.searchParams.append('auth_key', Config.deeplApiKey)
 
   const method = options.method || 'GET'
   const headers = new Headers(options.headers)
@@ -43,8 +40,7 @@ async function fetchDeepl<T>(url: string, options: RequestInit & { data?: any } 
 
   if (method.toUpperCase() === 'POST') {
     headers.append('Content-Type', 'application/x-www-form-urlencoded')
-    if (options.data)
-      body = qs.stringify(options.data)
+    if (options.data) body = qs.stringify(options.data)
   }
 
   log(true, {
@@ -61,7 +57,7 @@ async function fetchDeepl<T>(url: string, options: RequestInit & { data?: any } 
     body,
   })
 
-  const resData = await response.json() as T
+  const resData = (await response.json()) as T
 
   log(true, {
     status: response.status,
@@ -69,8 +65,7 @@ async function fetchDeepl<T>(url: string, options: RequestInit & { data?: any } 
     data: resData,
   })
 
-  if (!response.ok)
-    throw new Error(`DeepL API Error: ${response.status} ${response.statusText}`)
+  if (!response.ok) throw new Error(`DeepL API Error: ${response.status} ${response.statusText}`)
 
   return resData
 }
@@ -78,8 +73,7 @@ async function fetchDeepl<T>(url: string, options: RequestInit & { data?: any } 
 export async function usage(): Promise<DeepLUsage> {
   try {
     return fetchDeepl('/usage')
-  }
-  catch (err) {
+  } catch (err) {
     log(false, err)
 
     throw err
@@ -87,11 +81,9 @@ export async function usage(): Promise<DeepLUsage> {
 }
 
 function stripeLocaleCode(locale?: string): string | undefined {
-  if (!locale)
-    return locale
+  if (!locale) return locale
   const index = locale.indexOf('-')
-  if (index === -1)
-    return locale
+  if (index === -1) return locale
   return locale.slice(0, index)
 }
 
@@ -108,8 +100,7 @@ export class DeepLTranslateEngine extends TranslateEngine {
       })
 
       return this.transform(res.translations, options)
-    }
-    catch (err) {
+    } catch (err) {
       log(false, err)
 
       throw err
@@ -131,8 +122,7 @@ export class DeepLTranslateEngine extends TranslateEngine {
       res.forEach((tran: DeepLTranslate) => result.push(tran.text))
 
       r.result = result
-    }
-    catch (err) {}
+    } catch {}
 
     if (!r.detailed && !r.result) r.error = new Error('No result')
 

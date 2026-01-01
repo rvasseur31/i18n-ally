@@ -9,21 +9,18 @@ export async function InsertKey() {
   const editor = window.activeTextEditor
   const document = editor?.document
 
-  if (!editor || !document)
-    return
+  if (!editor || !document) return
 
   const keypath = await promptKeys(i18n.t('prompt.choice_key_to_insert'))
 
-  if (!keypath)
-    return
+  if (!keypath) return
 
   const replacer = await promptTemplates(keypath, [], document)
 
-  if (!replacer)
-    return
+  if (!replacer) return
 
   // open editor if not exists
-  await editor.edit((editBuilder) => {
+  await editor.edit(editBuilder => {
     editBuilder.replace(editor?.selection, replacer)
   })
 }

@@ -3,7 +3,7 @@ export enum ExtractionScore {
   ShouldInclude,
   None,
   ShouldExclude,
-  MustExclude
+  MustExclude,
 }
 
 export abstract class ExtractionRule {

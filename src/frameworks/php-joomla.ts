@@ -6,27 +6,18 @@ class PhpJoomlaFramework extends Framework {
   display = 'Joomla'
 
   detection = {
-    composerJSON: [
-      'joomla/application',
-    ],
+    composerJSON: ['joomla/application'],
   }
 
-  languageIds: LanguageId[] = [
-    'php',
-  ]
+  languageIds: LanguageId[] = ['php']
 
   enabledParsers = ['php']
 
   // for visualize the regex, you can use https://regexper.com/
-  usageMatchRegex = [
-    'J?Text::(?:_|[\\w]+)\\([\'"]({key})[\'"]',
-  ]
+  usageMatchRegex = ['J?Text::(?:_|[\\w]+)\\([\'"]({key})[\'"]']
 
   refactorTemplates(keypath: string) {
-    return [
-      `JText::_('${keypath}')`,
-      keypath,
-    ]
+    return [`JText::_('${keypath}')`, keypath]
   }
 }
 

@@ -7,18 +7,14 @@ import i18n from '~/i18n'
 import { Node, CurrentFile, PendingWrite } from '~/core'
 
 export async function DuplicateKey(item?: LocaleTreeItem | string) {
-  if (!item)
-    return
+  if (!item) return
 
   let node: Node | undefined
 
-  if (typeof item === 'string')
-    node = CurrentFile.loader.getTreeNodeByKey(item)
-  else
-    node = item.node
+  if (typeof item === 'string') node = CurrentFile.loader.getTreeNodeByKey(item)
+  else node = item.node
 
-  if (!node || node.type !== 'node')
-    return
+  if (!node || node.type !== 'node') return
 
   try {
     const oldkeypath = node.keypath
@@ -28,8 +24,7 @@ export async function DuplicateKey(item?: LocaleTreeItem | string) {
       ignoreFocusOut: true,
     })
 
-    if (!newkeypath)
-      return
+    if (!newkeypath) return
 
     if (!keypathValidate(newkeypath)) {
       window.showWarningMessage(i18n.t('prompt.invalid_keypath'))
@@ -37,22 +32,19 @@ export async function DuplicateKey(item?: LocaleTreeItem | string) {
       return
     }
 
-    if (await overrideConfirm(newkeypath) !== 'override')
-      return
+    if ((await overrideConfirm(newkeypath)) !== 'override') return
 
-    const writes: PendingWrite[] = Object.values(node.locales)
-      .map((v) => {
-        return ({
-          value: v.value,
-          keypath: newkeypath,
-          filepath: v.filepath,
-          locale: v.locale,
-        })
-      })
+    const writes: PendingWrite[] = Object.values(node.locales).map(v => {
+      return {
+        value: v.value,
+        keypath: newkeypath,
+        filepath: v.filepath,
+        locale: v.locale,
+      }
+    })
 
     await CurrentFile.loader.write(writes)
-  }
-  catch (err) {
+  } catch (err) {
     Log.error(err)
   }
 }

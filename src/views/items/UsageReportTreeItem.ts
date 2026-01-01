@@ -4,8 +4,16 @@ import { LocaleTreeItem } from '.'
 import { KeyUsage, LocaleNode, CurrentFile } from '~/core'
 
 export class UsageReportTreeItem extends LocaleTreeItem {
-  constructor(ctx: ExtensionContext, public readonly usage: KeyUsage, public readonly type: string) {
-    super(ctx, CurrentFile.loader.getTreeNodeByKey(usage.keypath) || new LocaleNode({ shadow: true, keypath: usage.keypath }), true)
+  constructor(
+    ctx: ExtensionContext,
+    public readonly usage: KeyUsage,
+    public readonly type: string,
+  ) {
+    super(
+      ctx,
+      CurrentFile.loader.getTreeNodeByKey(usage.keypath) || new LocaleNode({ shadow: true, keypath: usage.keypath }),
+      true,
+    )
   }
 
   get length() {
@@ -13,24 +21,21 @@ export class UsageReportTreeItem extends LocaleTreeItem {
   }
 
   get label() {
-    if (this.length)
-      return `${super.label} (${this.length})`
+    if (this.length) return `${super.label} (${this.length})`
     return super.label
   }
 
-  set label(_) { }
+  set label(_) {}
   get contextValue() {
     if (!this.length) {
       const values: string[] = [this.node.type]
 
       if (!this.node.readonly) {
         values.push('writable')
-        if (NodeHelper.isEditable(this.node))
-          values.push('editable')
+        if (NodeHelper.isEditable(this.node)) values.push('editable')
       }
 
-      if (NodeHelper.isOpenable(this.node))
-        values.push('openable')
+      if (NodeHelper.isOpenable(this.node)) values.push('openable')
 
       values.push(`key_${this.type}`)
 
@@ -40,10 +45,8 @@ export class UsageReportTreeItem extends LocaleTreeItem {
   }
 
   get collapsibleState() {
-    return this.length
-      ? TreeItemCollapsibleState.Collapsed
-      : TreeItemCollapsibleState.None
+    return this.length ? TreeItemCollapsibleState.Collapsed : TreeItemCollapsibleState.None
   }
 
-  set collapsibleState(_) { }
+  set collapsibleState(_) {}
 }

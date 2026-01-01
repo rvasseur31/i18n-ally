@@ -11,7 +11,7 @@ export class YamlParser extends Parser {
   }
 
   async parse(text: string) {
-    return yamlLoad(text, Config.parserOptions?.yaml?.load) as Object
+    return yamlLoad(text, Config.parserOptions?.yaml?.load) as object
   }
 
   async dump(object: object, sort: boolean, compare: ((x: string, y: string) => number) | undefined) {
@@ -32,27 +32,25 @@ export class YamlParser extends Parser {
     const doc = new YamlLex.Document({ keepCstNodes: true }).parse(cst[0])
 
     const findPairs = (node: any, path: string[] = []): KeyInDocument[] => {
-      if (!node)
-        return []
-      if (node.type === 'MAP' || node.type === 'SEQ')
-        return node.items.flatMap((m: any) => findPairs(m, path))
+      if (!node) return []
+      if (node.type === 'MAP' || node.type === 'SEQ') return node.items.flatMap((m: any) => findPairs(m, path))
       if (node.type === 'PAIR' && node.value != null && node.key != null) {
         if (!['BLOCK_FOLDED', 'BLOCK_LITERAL', 'PLAIN', 'QUOTE_DOUBLE', 'QUOTE_SINGLE'].includes(node.value.type)) {
           return findPairs(node.value, [...path, node.key.toString()])
-        }
-        else {
+        } else {
           const valueCST = node.value.cstNode
-          if (!valueCST || !valueCST.valueRange)
-            return []
+          if (!valueCST || !valueCST.valueRange) return []
           const { start, end, origStart, origEnd } = valueCST.valueRange
           const key = [...path, node.key.toString()].join('.')
 
-          return [{
-            start: (origStart || start) + 1,
-            end: (origEnd || end) - 1,
-            key,
-            quoted: true,
-          }]
+          return [
+            {
+              start: (origStart || start) + 1,
+              end: (origEnd || end) - 1,
+              key,
+              quoted: true,
+            },
+          ]
         }
       }
 

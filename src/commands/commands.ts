@@ -1,4 +1,3 @@
-
 export const enum Commands {
   config_locales_auto = 'i18n-ally.config-locales-auto',
   config_display_language = 'i18n-ally.config-display-language',

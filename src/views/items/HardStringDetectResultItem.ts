@@ -30,18 +30,12 @@ export class HardStringDetectResultItem extends BaseTreeItem implements ExtractT
     this.contextValue = 'i18n-ally-hard-string-item'
     this.label = this.detection.text.trim()
 
-    this.range = new Range(
-      document.positionAt(this.detection.start),
-      document.positionAt(this.detection.end),
-    )
+    this.range = new Range(document.positionAt(this.detection.start), document.positionAt(this.detection.end))
 
     this.command = {
       title: 'Go To',
       command: Commands.go_to_range,
-      arguments: [
-        this.detection.document,
-        this.range,
-      ],
+      arguments: [this.detection.document, this.range],
     }
   }
 }

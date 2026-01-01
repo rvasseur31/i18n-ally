@@ -1,13 +1,10 @@
-
 /**
  * 'foo' + bar() + ' is cool' -> `foo${bar()} is cool`
  */
 export function stringConcatenationToTemplate(text: string) {
   text = text.trim()
-  if (!text.match(/^['"`]/))
-    text = `''+${text}`
-  if (!text.match(/['"`]$/))
-    text = `${text}+''`
+  if (!text.match(/^['"`]/)) text = `''+${text}`
+  if (!text.match(/['"`]$/)) text = `${text}+''`
 
   // replace quotes with `\0`
   text = text
@@ -16,10 +13,10 @@ export function stringConcatenationToTemplate(text: string) {
     .replace(/^(['"`])/g, '\u0000')
 
   // concatenation
-  text = text.replace(/\0\s*\+\s*(.*?)\s*\+\s*\0/g, (full, one) => `$\{${one.trim()}}`)
+  text = text.replace(/0\s*\+\s*(.*?)\s*\+\s*0/g, (full, one) => `$\{${one.trim()}}`)
 
   // revert back quotes
-  text = text.replace(/\0/g, '`')
+  text = text.replace(/0/g, '`')
   return text
 }
 
@@ -27,8 +24,7 @@ export function parseHardString(text = '', languageId?: string, isDynamic = fals
   const trimmed = text.trim().replace(/\s*\r?\n\s*/g, ' ')
   let processed = trimmed
   const args: string[] = []
-  if (!trimmed)
-    return null
+  if (!trimmed) return null
 
   if (isDynamic && ['vue', 'js'].includes(languageId || ''))
     processed = stringConcatenationToTemplate(processed).slice(1, -1)

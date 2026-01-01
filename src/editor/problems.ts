@@ -1,4 +1,15 @@
-import { ExtensionContext, languages, DiagnosticCollection, window, TextDocument, Diagnostic, DiagnosticSeverity, Range, workspace, Uri } from 'vscode'
+import {
+  ExtensionContext,
+  languages,
+  DiagnosticCollection,
+  window,
+  TextDocument,
+  Diagnostic,
+  DiagnosticSeverity,
+  Range,
+  workspace,
+  Uri,
+} from 'vscode'
 import { EXT_NAMESPACE } from '../meta'
 import { ExtensionModule } from '~/modules'
 import { Global, KeyDetector, Config, Loader, CurrentFile, DetectionResult } from '~/core'
@@ -24,14 +35,11 @@ export class ProblemProvider {
   }
 
   update(document?: TextDocument): void {
-    if (!Global.enabled)
-      return this.collection.clear()
+    if (!Global.enabled) return this.collection.clear()
 
-    if (!document)
-      document = window.activeTextEditor?.document
+    if (!document) document = window.activeTextEditor?.document
 
-    if (!document || !Global.isLanguageIdSupported(document.languageId))
-      return
+    if (!document || !Global.isLanguageIdSupported(document.languageId)) return
 
     const locale = Config.displayLanguage
     const loader: Loader = CurrentFile.loader
@@ -54,8 +62,7 @@ export class ProblemProvider {
     // get all keys of current file
     for (const { key, start, end } of keys) {
       const has_translation = !!loader.getValueByKey(key, locale)
-      if (has_translation)
-        continue
+      if (has_translation) continue
 
       const exists = !!loader.getNodeByKey(key)
 
@@ -67,8 +74,7 @@ export class ProblemProvider {
           severity: DiagnosticSeverity.Information,
           key,
         })
-      }
-      else {
+      } else {
         problems.push({
           code: PROBLEM_KEY_MISSING,
           message: i18n.t('misc.missing_key', locale, key),

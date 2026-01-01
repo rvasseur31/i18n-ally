@@ -1,7 +1,15 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Disposable, EventEmitter } from 'vscode'
 import { LocaleTree, LocaleNode, LocaleRecord, FlattenLocaleTree } from '../Nodes'
-import { Coverage, FileInfo, PendingWrite, NodeOptions, RewriteKeySource, RewriteKeyContext, DataProcessContext } from '../types'
+import {
+  Coverage,
+  FileInfo,
+  PendingWrite,
+  NodeOptions,
+  RewriteKeySource,
+  RewriteKeyContext,
+  DataProcessContext,
+} from '../types'
 import { Config, Global } from '..'
 import { resolveFlattenRootKeypath, resolveFlattenRoot, NodeHelper, uniq, isObject } from '~/utils'
 
@@ -14,9 +22,7 @@ export abstract class Loader extends Disposable {
   protected _flattenLocaleTree: FlattenLocaleTree = {}
   protected _localeTree: LocaleTree = new LocaleTree({ keypath: '' })
 
-  constructor(
-    public readonly name: string,
-  ) {
+  constructor(public readonly name: string) {
     super(() => this.onDispose())
   }
 
@@ -41,8 +47,12 @@ export abstract class Loader extends Disposable {
   getCoverage(locale: string, keys?: string[]): Coverage | undefined {
     const allKeys = keys || this.keys
     allKeys.sort()
-    const translatedKeys = allKeys.filter(key => this.flattenLocaleTree[key] && this.flattenLocaleTree[key].getValue(locale))
-    const missingKeys = allKeys.filter(key => (!this.flattenLocaleTree[key]) || this.flattenLocaleTree[key].getValue(locale) == null)
+    const translatedKeys = allKeys.filter(
+      key => this.flattenLocaleTree[key] && this.flattenLocaleTree[key].getValue(locale),
+    )
+    const missingKeys = allKeys.filter(
+      key => !this.flattenLocaleTree[key] || this.flattenLocaleTree[key].getValue(locale) == null,
+    )
     const emptyKeys = allKeys.filter(key => !translatedKeys.includes(key) && !missingKeys.includes(key))
     const total = allKeys.length
     const translated = translatedKeys.length
@@ -59,44 +69,50 @@ export abstract class Loader extends Disposable {
     }
   }
 
-  protected updateTree(tree: LocaleTree | undefined, data: any, keypath: string, keyname: string, options: NodeOptions, isCollection = false) {
-    tree = tree || new LocaleTree({
-      keypath,
-      keyname,
-      isCollection,
-      features: options.features,
-      meta: options.meta,
-    })
+  protected updateTree(
+    tree: LocaleTree | undefined,
+    data: any,
+    keypath: string,
+    keyname: string,
+    options: NodeOptions,
+    isCollection = false,
+  ) {
+    tree =
+      tree ||
+      new LocaleTree({
+        keypath,
+        keyname,
+        isCollection,
+        features: options.features,
+        meta: options.meta,
+      })
     tree.values[options.locale] = data
 
     for (const [key, value] of Object.entries(data)) {
-      if (value == null)
-        continue
+      if (value == null) continue
 
       const newKeyPath = keypath
-        ? (isCollection
+        ? isCollection
           ? `${keypath}[${key}]`
-          : `${keypath}.${key}`)
-        : (isCollection
+          : `${keypath}.${key}`
+        : isCollection
           ? `[${key}]`
-          : key)
+          : key
 
       let node = tree.getChild(key)
 
       // should go nested
       if (Array.isArray(value)) {
-        let subtree: LocaleTree|undefined
-        if (node && node.type === 'tree')
-          subtree = node as LocaleTree
+        let subtree: LocaleTree | undefined
+        if (node && node.type === 'tree') subtree = node
 
         tree.setChild(key, this.updateTree(subtree, value, newKeyPath, key, options, true))
         continue
       }
 
       if (isObject(value)) {
-        let subtree: LocaleTree|undefined
-        if (node && node.type === 'tree')
-          subtree = node as LocaleTree
+        let subtree: LocaleTree | undefined
+        if (node && node.type === 'tree') subtree = node
 
         tree.setChild(key, this.updateTree(subtree, value, newKeyPath, key, options))
         continue
@@ -120,7 +136,7 @@ export abstract class Loader extends Disposable {
         node.locales[options.locale] = new LocaleRecord({
           keypath: newKeyPath,
           keyname: key,
-          value: `${value}`,
+          value: value as string,
           locale: options.locale,
           filepath: options.filepath,
           features: options.features,
@@ -133,23 +149,19 @@ export abstract class Loader extends Disposable {
   }
 
   rewriteKeys(key: string, source: RewriteKeySource, context: RewriteKeyContext = {}) {
-    if (Config.disablePathParsing)
-      return key
+    if (Config.disablePathParsing) return key
 
-    for (const framework of Global.enabledFrameworks)
-      key = framework.rewriteKeys(key, source, context)
+    for (const framework of Global.enabledFrameworks) key = framework.rewriteKeys(key, source, context)
     return key
   }
 
   preprocessData(data: object, context: DataProcessContext = {}) {
-    for (const framework of Global.enabledFrameworks)
-      data = framework.preprocessData(data, context)
+    for (const framework of Global.enabledFrameworks) data = framework.preprocessData(data, context)
     return data
   }
 
   deprocessData(data: object, context: DataProcessContext = {}) {
-    for (const framework of Global.enabledFrameworks)
-      data = framework.deprocessData(data, context)
+    for (const framework of Global.enabledFrameworks) data = framework.deprocessData(data, context)
     return data
   }
 
@@ -160,12 +172,10 @@ export abstract class Loader extends Disposable {
     // flatten style
     if (root || Config.disablePathParsing) {
       const node = tree.getChild(key)
-      if (node)
-        return node
+      if (node) return node
     }
 
-    if (Config.disablePathParsing)
-      return
+    if (Config.disablePathParsing) return
 
     // tree style
     const keys = NodeHelper.splitKeypath(key)
@@ -178,14 +188,12 @@ export abstract class Loader extends Disposable {
         const pluralKeys = NESTED_PLURALIZATION_KEYS.map(k => `${head}_${k}`)
         for (const pk of pluralKeys) {
           const pluralNode = tree.getChild(pk)
-          if (pluralNode)
-            return pluralNode
+          if (pluralNode) return pluralNode
         }
       }
       return node
     }
-    if (node && node.type === 'tree')
-      return this.getTreeNodeByKey(remaining, node)
+    if (node && node.type === 'tree') return this.getTreeNodeByKey(remaining, node)
 
     return undefined
   }
@@ -193,8 +201,7 @@ export abstract class Loader extends Disposable {
   getFilepathByKey(key: string, locale?: string) {
     locale = locale || Config.displayLanguage
     const record = this.getRecordByKey(key, locale)
-    if (record && record.filepath)
-      return record.filepath
+    if (record && record.filepath) return record.filepath
     return undefined
   }
 
@@ -203,10 +210,8 @@ export abstract class Loader extends Disposable {
   }
 
   private stripAnnotationString(str: string, maxlength = 0) {
-    if (!str)
-      return
-    if (maxlength && str.length > maxlength)
-      str = `${str.substring(0, maxlength)}…`
+    if (!str) return
+    if (maxlength && str.length > maxlength) str = `${str.substring(0, maxlength)}…`
     return str
   }
 
@@ -215,15 +220,13 @@ export abstract class Loader extends Disposable {
   }
 
   private firstPluralizationKey(value: Record<string, any>) {
-    if (!value || !isObject(value))
-      return undefined
+    if (!value || !isObject(value)) return undefined
 
     return Object.keys(value).find(key => NESTED_PLURALIZATION_KEYS.includes(key))
   }
 
   private firstPluralizationKeyValue(value: Record<string, any>) {
-    if (!value || !isObject(value))
-      return undefined
+    if (!value || !isObject(value)) return undefined
 
     const firstPluralizationKey = this.firstPluralizationKey(value)
 
@@ -235,31 +238,25 @@ export abstract class Loader extends Disposable {
 
     const node = resolveFlattenRoot(this.getTreeNodeByKey(key))
 
-    if (!node)
-      return undefined
+    if (!node) return undefined
 
     if (node.type === 'tree') {
       const value = node.values[locale]
-      if (!value)
-        return undefined
+      if (!value) return undefined
 
       if (Config._keyStyle !== 'flat' && this.treeNodeValueHasPluralizationKeys(value))
         return this.stripAnnotationString(this.firstPluralizationKeyValue(value), maxlength)
 
-      let text = JSON
-        .stringify(value, null, stringifySpace)
+      let text = JSON.stringify(value, null, stringifySpace)
         .replace(/"(\w+?)":/g, ' $1:')
         .replace(/}/, ' }')
 
       if (maxlength && text.length > maxlength) {
-        if (node.isCollection)
-          text = '[…]'
-        else
-          text = '{…}'
+        if (node.isCollection) text = '[…]'
+        else text = '{…}'
       }
       return text
-    }
-    else {
+    } else {
       return this.stripAnnotationString(node.getValue(locale, true), maxlength)
     }
   }
@@ -270,17 +267,15 @@ export abstract class Loader extends Disposable {
 
   getNodeByKey(key: string, shadow = false, locale?: string): LocaleNode | undefined {
     const node = resolveFlattenRoot(this.getTreeNodeByKey(key))
-    if (!node && shadow)
-      return this.getShadowNodeByKey(key)
-    if (node && node.type !== 'tree')
-      return node
+    if (!node && shadow) return this.getShadowNodeByKey(key)
+    if (node && node.type !== 'tree') return node
 
     const language = locale || Config.sourceLanguage
     if (
-      node
-      && node.type === 'tree'
-      && Config._keyStyle !== 'flat'
-      && this.treeNodeValueHasPluralizationKeys(node.values[language])
+      node &&
+      node.type === 'tree' &&
+      Config._keyStyle !== 'flat' &&
+      this.treeNodeValueHasPluralizationKeys(node.values[language])
     ) {
       const subkey = this.firstPluralizationKey(node.values[language])
       if (subkey && node.children[subkey] && node.children[subkey].type === 'node')
@@ -290,12 +285,9 @@ export abstract class Loader extends Disposable {
 
   getTranslationsByKey(key: string, shadow = true, locale?: string) {
     const node = this.getNodeByKey(key, shadow, locale)
-    if (!node)
-      return {}
-    if (shadow)
-      return this.getShadowLocales(node)
-    else
-      return node.locales
+    if (!node) return {}
+    if (shadow) return this.getShadowLocales(node)
+    else return node.locales
   }
 
   getRecordByKey(key: string, locale: string, shadow = false): LocaleRecord | undefined {
@@ -308,12 +300,11 @@ export abstract class Loader extends Disposable {
 
     listedLocales = listedLocales || Global.getVisibleLocales(this.locales)
 
-    listedLocales.forEach((locale) => {
+    listedLocales.forEach(locale => {
       if (node.locales[locale]) {
         // locales already exists
         locales[locale] = node.locales[locale]
-      }
-      else {
+      } else {
         // create shadow locale
         locales[locale] = new LocaleRecord({
           locale,
@@ -331,15 +322,14 @@ export abstract class Loader extends Disposable {
     return locales
   }
 
-  abstract write (pendings: PendingWrite | PendingWrite[]): Promise<void>
+  abstract write(pendings: PendingWrite | PendingWrite[]): Promise<void>
 
   canHandleWrites(pending: PendingWrite) {
     return false
   }
 
   searchKeyForTranslations(text: string, locale = Config.sourceLanguage) {
-    return this.keys
-      .find(i => this.getTranslationsByKey(i, false)?.[locale]?.value === text)
+    return this.keys.find(i => this.getTranslationsByKey(i, false)?.[locale]?.value === text)
   }
 
   protected onDispose() {

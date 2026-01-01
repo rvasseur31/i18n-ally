@@ -31,8 +31,7 @@ export abstract class Parser {
 
   async load(filepath: string): Promise<object> {
     const raw = await File.read(filepath)
-    if (!raw)
-      return {}
+    if (!raw) return {}
     return await this.parse(raw)
   }
 

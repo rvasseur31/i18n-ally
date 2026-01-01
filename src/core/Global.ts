@@ -1,5 +1,15 @@
 import { extname, resolve } from 'path'
-import { workspace, commands, window, EventEmitter, Event, ExtensionContext, ConfigurationChangeEvent, TextDocument, WorkspaceFolder } from 'vscode'
+import {
+  workspace,
+  commands,
+  window,
+  EventEmitter,
+  Event,
+  ExtensionContext,
+  ConfigurationChangeEvent,
+  TextDocument,
+  WorkspaceFolder,
+} from 'vscode'
 import { isMatch } from 'micromatch'
 import { ParsePathMatcher } from '../utils/PathMatcher'
 import { EXT_NAMESPACE } from '../meta'
@@ -65,8 +75,7 @@ export class Global {
         ])
       }
       return this._cacheUsageMatchRegex.custom
-    }
-    else {
+    } else {
       const key = `${languageId}_${filepath}`
       if (!this._cacheUsageMatchRegex[key]) {
         this._cacheUsageMatchRegex[key] = normalizeUsageMatchRegex([
@@ -80,27 +89,31 @@ export class Global {
 
   static async requestKeyStyle(): Promise<KeyStyle> {
     // user setting
-    if (Config._keyStyle !== 'auto')
-      return Config._keyStyle
+    if (Config._keyStyle !== 'auto') return Config._keyStyle
 
     // try to use frameworks preference
     for (const f of this.enabledFrameworks) {
-      if (f.preferredKeystyle && f.preferredKeystyle !== 'auto')
-        return f.preferredKeystyle
+      if (f.preferredKeystyle && f.preferredKeystyle !== 'auto') return f.preferredKeystyle
     }
 
     // prompt to select
-    const result = await window.showQuickPick([{
-      value: 'nested',
-      label: i18n.t('prompt.keystyle_nested'),
-      description: i18n.t('prompt.keystyle_nested_example'),
-    }, {
-      value: 'flat',
-      label: i18n.t('prompt.keystyle_flat'),
-      description: i18n.t('prompt.keystyle_flat_example'),
-    }], {
-      placeHolder: i18n.t('prompt.keystyle_select'),
-    })
+    const result = await window.showQuickPick(
+      [
+        {
+          value: 'nested',
+          label: i18n.t('prompt.keystyle_nested'),
+          description: i18n.t('prompt.keystyle_nested_example'),
+        },
+        {
+          value: 'flat',
+          label: i18n.t('prompt.keystyle_flat'),
+          description: i18n.t('prompt.keystyle_flat_example'),
+        },
+      ],
+      {
+        placeHolder: i18n.t('prompt.keystyle_select'),
+      },
+    )
 
     if (!result) {
       Config._keyStyle = 'nested'
@@ -110,64 +123,65 @@ export class Global {
     return result.value as KeyStyle
   }
 
-  static interpretRefactorTemplates(keypath: string, args?: string[], document?: TextDocument, detection?: DetectionResult) {
+  static interpretRefactorTemplates(
+    keypath: string,
+    args?: string[],
+    document?: TextDocument,
+    detection?: DetectionResult,
+  ) {
     const path = slash(document?.uri.fsPath || '')
     const root = workspace.workspaceFolders?.[0]?.uri.fsPath
-    const customTemplates = Config.refactorTemplates
-      .filter((i) => {
-        if (i.source && i.source !== detection?.source)
+    const customTemplates = Config.refactorTemplates.filter(i => {
+      if (i.source && i.source !== detection?.source) return false
+      if (i.exclude || i.include) {
+        if (!path || !root) return false
+        if (
+          i.exclude &&
+          isMatch(
+            path,
+            i.exclude.map(i => slash(resolve(root, i))),
+          )
+        )
           return false
-        if (i.exclude || i.include) {
-          if (!path || !root)
-            return false
-          if (i.exclude && isMatch(path, i.exclude.map(i => slash(resolve(root, i)))))
-            return false
-          if (i.include && !isMatch(path, i.include.map(i => slash(resolve(root, i)))))
-            return false
-        }
-        return true
-      })
+        if (
+          i.include &&
+          !isMatch(
+            path,
+            i.include.map(i => slash(resolve(root, i))),
+          )
+        )
+          return false
+      }
+      return true
+    })
     const argsString = args?.length ? `,${args?.join(',')}` : ''
 
     const customReplacers = customTemplates
       .flatMap(i => i.templates)
-      .map(i => i
-        .replace(/{key}/, keypath)
-        .replace(/{args}/, argsString),
-      )
+      .map(i => i.replace(/{key}/, keypath).replace(/{args}/, argsString))
 
-    const frameworkReplacers = this.enabledFrameworks
-      .flatMap(f => f.refactorTemplates(keypath, args, document, detection))
+    const frameworkReplacers = this.enabledFrameworks.flatMap(f =>
+      f.refactorTemplates(keypath, args, document, detection),
+    )
 
-    return uniq([
-      ...customReplacers,
-      ...frameworkReplacers,
-    ])
+    return uniq([...customReplacers, ...frameworkReplacers])
   }
 
   static isLanguageIdSupported(languageId: string) {
-    return this.enabledFrameworks
-      .flatMap(f => f.languageIds as string[])
-      .includes(languageId)
+    return this.enabledFrameworks.flatMap(f => f.languageIds as string[]).includes(languageId)
   }
 
   static getSupportLangGlob() {
-    const exts = uniq(this.enabledFrameworks
-      .flatMap(f => f.languageIds)
-      .flatMap(id => getExtOfLanguageId(id)))
+    const exts = uniq(this.enabledFrameworks.flatMap(f => f.languageIds).flatMap(id => getExtOfLanguageId(id)))
 
-    if (!exts.length)
-      return ''
-    else if (exts.length === 1)
-      return `**/*.${exts[0]}`
-    else
-      return `**/*.{${exts.join(',')}}`
+    if (!exts.length) return ''
+    else if (exts.length === 1) return `**/*.${exts[0]}`
+    else return `**/*.{${exts.join(',')}}`
   }
 
   static getNamespaceDelimiter() {
     for (const f of this.enabledFrameworks) {
-      if (f.namespaceDelimiter)
-        return f.namespaceDelimiter
+      if (f.namespaceDelimiter) return f.namespaceDelimiter
     }
 
     return '.'
@@ -176,31 +190,24 @@ export class Global {
   static get derivedKeyRules() {
     const rules = Config.usageDerivedKeyRules
       ? Config.usageDerivedKeyRules
-      : this.enabledFrameworks
-        .flatMap(f => f.derivedKeyRules || [])
+      : this.enabledFrameworks.flatMap(f => f.derivedKeyRules || [])
 
-    return uniq(rules)
-      .map((rule) => {
-        const reg = rule
-          .replace(/\./g, '\\.')
-          .replace(/{key}/, '(.+)')
+    return uniq(rules).map(rule => {
+      const reg = rule.replace(/\./g, '\\.').replace(/{key}/, '(.+)')
 
-        return new RegExp(`^${reg}$`)
-      })
+      return new RegExp(`^${reg}$`)
+    })
   }
 
   static getDocumentSelectors() {
-    return this.enabledFrameworks
-      .flatMap(f => f.languageIds)
-      .map(id => ({ scheme: 'file', language: id }))
+    return this.enabledFrameworks.flatMap(f => f.languageIds).map(id => ({ scheme: 'file', language: id }))
   }
 
   static get enabledParserExts() {
     return this.enabledParsers
       .flatMap(f => [
         f.supportedExts,
-        Object.entries(Config.parsersExtendFileExtensions)
-          .find(([, v]) => v === f.id)?.[0],
+        Object.entries(Config.parsersExtendFileExtensions).find(([, v]) => v === f.id)?.[0],
       ])
       .filter(Boolean)
       .join('|')
@@ -210,8 +217,7 @@ export class Global {
     let config = Config._dirStructure
     if (!config || config === 'auto') {
       for (const f of this.enabledFrameworks) {
-        if (f.preferredDirStructure)
-          config = f.preferredDirStructure
+        if (f.preferredDirStructure) config = f.preferredDirStructure
       }
     }
     return config
@@ -220,14 +226,12 @@ export class Global {
   static getPathMatchers(dirStructure: DirStructure) {
     const rules = Config._pathMatcher
       ? [Config._pathMatcher]
-      : this.enabledFrameworks
-        .flatMap(f => f.pathMatcher(dirStructure))
+      : this.enabledFrameworks.flatMap(f => f.pathMatcher(dirStructure))
 
-    return uniq(rules)
-      .map(matcher => ({
-        regex: ParsePathMatcher(matcher, this.enabledParserExts),
-        matcher,
-      }))
+    return uniq(rules).map(matcher => ({
+      regex: ParsePathMatcher(matcher, this.enabledParserExts),
+      matcher,
+    }))
   }
 
   static hasFeatureEnabled(name: keyof OptionalFeatures) {
@@ -244,15 +248,12 @@ export class Global {
   static get localesPaths(): string[] | undefined {
     let config
 
-    if (this._currentWorkspaceFolder)
-      config = Config.getLocalesPathsInScope(this._currentWorkspaceFolder)
-    else
-      config = Config._localesPaths
+    if (this._currentWorkspaceFolder) config = Config.getLocalesPathsInScope(this._currentWorkspaceFolder)
+    else config = Config._localesPaths
 
     if (!config) {
       config = this.enabledFrameworks.flatMap(f => f.preferredLocalePaths || [])
-      if (!config.length)
-        config = undefined
+      if (!config.length) config = undefined
     }
     return config
   }
@@ -264,15 +265,13 @@ export class Global {
   }
 
   private static async initLoader(rootpath: string, reload = false) {
-    if (!rootpath)
-      return
+    if (!rootpath) return
 
     // if (Config.debug)
     //  clearNotificationState(this.context)
     checkNotification(this.context)
 
-    if (this._loaders[rootpath] && !reload)
-      return this._loaders[rootpath]
+    if (this._loaders[rootpath] && !reload) return this._loaders[rootpath]
 
     const loader = new LocaleLoader(rootpath)
     await loader.init()
@@ -287,8 +286,7 @@ export class Global {
     const editor = window.activeTextEditor
     let rootpath = ''
 
-    if (!editor || !workspace.workspaceFolders || workspace.workspaceFolders.length === 0)
-      return
+    if (!editor || !workspace.workspaceFolders || workspace.workspaceFolders.length === 0) return
 
     const resource = editor.document.uri
     if (resource.scheme === 'file') {
@@ -299,8 +297,7 @@ export class Global {
       }
     }
 
-    if (!rootpath && workspace.rootPath)
-      rootpath = workspace.rootPath
+    if (!rootpath && workspace.rootPath) rootpath = workspace.rootPath
 
     if (rootpath && rootpath !== this._rootpath) {
       this._rootpath = rootpath
@@ -350,18 +347,15 @@ export class Global {
         }
       }
 
-      if (!affected)
-        return
+      if (!affected) return
 
-      if (reload)
-        Log.info('🔁 Reloading loader')
+      if (reload) Log.info('🔁 Reloading loader')
     }
 
     if (!Config.enabledFrameworks) {
       const packages = getPackageDependencies(this._rootpath)
       this.enabledFrameworks = getEnabledFrameworks(packages, this._rootpath)
-    }
-    else {
+    } else {
       const frameworks = Config.enabledFrameworks
       this.enabledFrameworks = getEnabledFrameworksByIds(frameworks, this._rootpath)
     }
@@ -379,14 +373,11 @@ export class Global {
       Telemetry.track(TelemetryKey.Enabled)
 
       await this.initLoader(this._rootpath, reload)
-    }
-    else {
+    } else {
       if (!Config.disabled) {
-        if (!isValidProject && hasLocalesSet)
-          Log.info('⚠ Current workspace is not a valid project, extension disabled')
+        if (!isValidProject && hasLocalesSet) Log.info('⚠ Current workspace is not a valid project, extension disabled')
 
-        if (isValidProject && !hasLocalesSet && Config.autoDetection)
-          ConfigLocalesGuide.autoSet()
+        if (isValidProject && !hasLocalesSet && Config.autoDetection) ConfigLocalesGuide.autoSet()
       }
 
       this.unloadAll()
@@ -407,23 +398,19 @@ export class Global {
   static get enabledParsers() {
     let ids = Config.enabledParsers?.length
       ? Config.enabledParsers
-      : this.enabledFrameworks
-        .flatMap(f => f.enabledParsers || [])
+      : this.enabledFrameworks.flatMap(f => f.enabledParsers || [])
 
-    if (!ids.length)
-      ids = DefaultEnabledParsers
+    if (!ids.length) ids = DefaultEnabledParsers
 
     return AvailableParsers.filter(i => ids.includes(i.id))
   }
 
   static getMatchedParser(ext: string) {
-    if (!ext.startsWith('.') && ext.includes('.'))
-      ext = extname(ext)
+    if (!ext.startsWith('.') && ext.includes('.')) ext = extname(ext)
 
     // resolve custom parser extensions
     const id = Config.parsersExtendFileExtensions[ext.slice(1)]
-    if (id)
-      return this.enabledParsers.find(parser => parser.id === id)
+    if (id) return this.enabledParsers.find(parser => parser.id === id)
 
     // resolve parser
     return this.enabledParsers.find(parser => parser.supports(ext))

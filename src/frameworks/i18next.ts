@@ -3,7 +3,7 @@ import { RewriteKeySource, RewriteKeyContext } from '~/core'
 import { LanguageId } from '~/utils'
 
 class I18nextFramework extends Framework {
-  id ='i18next'
+  id = 'i18next'
   display = 'i18next'
   namespaceDelimiter = ':'
 
@@ -13,27 +13,15 @@ class I18nextFramework extends Framework {
 
   detection = {
     packageJSON: {
-      any: [
-        'i18next',
-      ],
-      none: [
-        'react-i18next',
-      ],
+      any: ['i18next'],
+      none: ['react-i18next'],
     },
   }
 
-  languageIds: LanguageId[] = [
-    'javascript',
-    'typescript',
-    'javascriptreact',
-    'typescriptreact',
-    'ejs',
-  ]
+  languageIds: LanguageId[] = ['javascript', 'typescript', 'javascriptreact', 'typescriptreact', 'ejs']
 
   // for visualize the regex, you can use https://regexper.com/
-  usageMatchRegex = [
-    '(?:i18next|i18n|req)\\.t\\(\\s*[\'"`]({key})[\'"`]',
-  ]
+  usageMatchRegex = ['(?:i18next|i18n|req)\\.t\\(\\s*[\'"`]({key})[\'"`]']
 
   derivedKeyRules = [
     '{key}_plural',
@@ -53,13 +41,11 @@ class I18nextFramework extends Framework {
     '{key}_two',
     '{key}_few',
     '{key}_many',
-    '{key}_other'
+    '{key}_other',
   ]
 
   refactorTemplates(keypath: string) {
-    return [
-      keypath,
-    ]
+    return [keypath]
   }
 
   rewriteKeys(key: string, source: RewriteKeySource, context: RewriteKeyContext = {}) {
@@ -67,9 +53,9 @@ class I18nextFramework extends Framework {
 
     // when explicitly set the namespace, ignore current namespace scope
     if (
-      this.namespaceDelimiters.some(d => key.includes(d))
-      && context.namespace
-      && dottedKey.startsWith(context.namespace.split(this.namespaceDelimitersRegex).join('.'))
+      this.namespaceDelimiters.some(d => key.includes(d)) &&
+      context.namespace &&
+      dottedKey.startsWith(context.namespace.split(this.namespaceDelimitersRegex).join('.'))
     )
       // +1 for the an extra `.`
       key = key.slice(context.namespace.length + 1)

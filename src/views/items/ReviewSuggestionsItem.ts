@@ -31,8 +31,7 @@ export class ReviewSuggestionsItem extends BaseTreeItem {
   // @ts-expect-error
   get description() {
     let suggestion = this.comment.suggestion
-    if (suggestion)
-      suggestion += '  '
+    if (suggestion) suggestion += '  '
     return `${suggestion}・ "${this.comment.keypath}"`
   }
 

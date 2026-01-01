@@ -8,24 +8,20 @@ export async function EditKey(item?: LocaleTreeItem | CommandOptions) {
 
   let node = getNodeOrRecord(item)
 
-  if (!node)
-    return
+  if (!node) return
 
   if (node.type === 'node') {
     let locale = Config.displayLanguage
-    if (item instanceof LocaleTreeItem && item.displayLocale)
-      locale = item.displayLocale
+    if (item instanceof LocaleTreeItem && item.displayLocale) locale = item.displayLocale
 
     const record = await getRecordFromNode(node, locale)
-    if (!record)
-      return
+    if (!record) return
     node = record
   }
 
   let value = node.value
 
-  if (Config.disablePathParsing && node.shadow && !node.value)
-    value = node.keypath
+  if (Config.disablePathParsing && node.shadow && !node.value) value = node.keypath
 
   try {
     const newvalue = await promptEdit(node.keypath, node.locale, value)
@@ -39,8 +35,7 @@ export async function EditKey(item?: LocaleTreeItem | CommandOptions) {
         features: node.features,
       })
     }
-  }
-  catch (err) {
-    Log.error(err.toString())
+  } catch (err) {
+    Log.error(err)
   }
 }

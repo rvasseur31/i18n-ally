@@ -6,11 +6,6 @@ export * from './base'
 export * from './basic'
 export * from './non-ascii-characters'
 
-export const DefaultExtractionRules = [
-  new BasicExtrationRule(),
-  new NonAsciiExtractionRule(),
-]
+export const DefaultExtractionRules = [new BasicExtrationRule(), new NonAsciiExtractionRule()]
 
-export const DefaultDynamicExtractionsRules = [
-  new DynamicExtractionRule(),
-]
+export const DefaultDynamicExtractionsRules = [new DynamicExtractionRule()]

@@ -30,18 +30,15 @@ export function checkNotification(ctx: ExtensionContext) {
   const notificationIds = (ctx.globalState.get<string>('notifications-ids') || '').split(',')
 
   for (const notification of notifications) {
-    if (notificationIds.includes(notification.id))
-      continue
+    if (notificationIds.includes(notification.id)) continue
 
     if (semver.satisfies(previousVersion, notification.condition)) {
       notificationIds.push(notification.id)
       const buttonNames = notification.buttons.map(b => b.text)
-      window.showInformationMessage(notification.message, ...buttonNames)
-        .then((result) => {
-          const button = notification.buttons.find(i => i.text === result)
-          if (button)
-            env.openExternal(Uri.parse(button.url))
-        })
+      window.showInformationMessage(notification.message, ...buttonNames).then(result => {
+        const button = notification.buttons.find(i => i.text === result)
+        if (button) env.openExternal(Uri.parse(button.url))
+      })
     }
   }
 

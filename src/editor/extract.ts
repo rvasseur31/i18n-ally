@@ -1,4 +1,14 @@
-import { CodeAction, CodeActionContext, CodeActionKind, CodeActionProvider, Command, languages, Range, Selection, TextDocument } from 'vscode'
+import {
+  CodeAction,
+  CodeActionContext,
+  CodeActionKind,
+  CodeActionProvider,
+  Command,
+  languages,
+  Range,
+  Selection,
+  TextDocument,
+} from 'vscode'
 import { DiagnosticWithDetection, PROBLEM_CODE_HARD_STRING } from './problems'
 import { ExtensionModule } from '~/modules'
 import { Config, CurrentFile, Global } from '~/core'
@@ -15,10 +25,7 @@ export function DetectionResultToExtraction(detection: DetectionResult, document
     text: '',
     rawText: detection.text.trim(),
     isInsert: false,
-    range: new Range(
-      document.positionAt(detection.start),
-      document.positionAt(detection.end),
-    ),
+    range: new Range(document.positionAt(detection.start), document.positionAt(detection.end)),
   }
 }
 
@@ -28,13 +35,13 @@ class ExtractProvider implements CodeActionProvider {
     selection: Range | Selection,
     context: CodeActionContext,
   ): Promise<(Command | CodeAction)[]> {
-    if (!Global.enabled)
-      return []
+    if (!Global.enabled) return []
 
-    if (!Global.isLanguageIdSupported(document.languageId))
-      return []
+    if (!Global.isLanguageIdSupported(document.languageId)) return []
 
-    const diagnostic = context.diagnostics.find(i => i.code === PROBLEM_CODE_HARD_STRING) as DiagnosticWithDetection | undefined
+    const diagnostic = context.diagnostics.find(i => i.code === PROBLEM_CODE_HARD_STRING) as
+      | DiagnosticWithDetection
+      | undefined
 
     // quick fix for hard string problems
     if (diagnostic?.detection) {
@@ -42,10 +49,7 @@ class ExtractProvider implements CodeActionProvider {
       extract.command = {
         command: Commands.extract_text,
         title: i18n.t('refactor.extract_text'),
-        arguments: [
-          DetectionResultToExtraction(diagnostic.detection, document),
-          diagnostic.detection,
-        ],
+        arguments: [DetectionResultToExtraction(diagnostic.detection, document), diagnostic.detection],
       }
       extract.diagnostics = [diagnostic]
       extract.isPreferred = true
@@ -55,9 +59,7 @@ class ExtractProvider implements CodeActionProvider {
       ignore.command = {
         command: Commands.extract_ignore,
         title: ignoreTitle,
-        arguments: [
-          diagnostic.detection.text,
-        ],
+        arguments: [diagnostic.detection.text],
       }
       ignore.diagnostics = [diagnostic]
 
@@ -66,10 +68,7 @@ class ExtractProvider implements CodeActionProvider {
       ignoreByFile.command = {
         command: Commands.extract_ignore,
         title: ignoreTitle,
-        arguments: [
-          diagnostic.detection.text,
-          document,
-        ],
+        arguments: [diagnostic.detection.text, document],
       }
       ignoreByFile.diagnostics = [diagnostic]
 
@@ -77,12 +76,10 @@ class ExtractProvider implements CodeActionProvider {
     }
 
     // user selection context
-    if (!(selection instanceof Selection))
-      return []
+    if (!(selection instanceof Selection)) return []
 
     const result = parseHardString(document.getText(selection), document.languageId)
-    if (!result)
-      return []
+    if (!result) return []
 
     const { text, args } = result
     const actions: (Command | CodeAction)[] = []
@@ -114,16 +111,9 @@ class ExtractProvider implements CodeActionProvider {
 
 const m: ExtensionModule = () => {
   return [
-    languages.registerCodeActionsProvider(
-      '*',
-      new ExtractProvider(),
-      {
-        providedCodeActionKinds: [
-          CodeActionKind.QuickFix,
-          CodeActionKind.Refactor,
-        ],
-      },
-    ),
+    languages.registerCodeActionsProvider('*', new ExtractProvider(), {
+      providedCodeActionKinds: [CodeActionKind.QuickFix, CodeActionKind.Refactor],
+    }),
   ]
 }
 

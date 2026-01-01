@@ -1,10 +1,4 @@
-export type CaseStyles =
- | 'default'
- | 'kebab-case'
- | 'snake_case'
- | 'camelCase'
- | 'PascalCase'
- | 'ALL_CAPS'
+export type CaseStyles = 'default' | 'kebab-case' | 'snake_case' | 'camelCase' | 'PascalCase' | 'ALL_CAPS'
 
 function splitWords(str: string) {
   return str
@@ -16,10 +10,7 @@ function splitWords(str: string) {
 
 function camelCase(str: string) {
   return splitWords(str)
-    .map((c, i) => i === 0
-      ? c.toLowerCase()
-      : c.charAt(0).toUpperCase() + c.slice(1).toLowerCase(),
-    )
+    .map((c, i) => (i === 0 ? c.toLowerCase() : c.charAt(0).toUpperCase() + c.slice(1).toLowerCase()))
     .join('')
 }
 
@@ -48,8 +39,7 @@ function constantCase(str: string) {
 }
 
 export function changeCase(str: string, style: CaseStyles) {
-  if (!style || style === 'default')
-    return str
+  if (!style || style === 'default') return str
 
   switch (style) {
     case 'ALL_CAPS':

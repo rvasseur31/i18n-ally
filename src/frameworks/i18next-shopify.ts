@@ -9,9 +9,7 @@ class ShopifyI18nextFramework extends ReactI18nextFramework {
   preferredDirStructure?: DirStructure = 'file'
 
   detection = {
-    packageJSON: [
-      '@shopify/i18next-shopify',
-    ],
+    packageJSON: ['@shopify/i18next-shopify'],
   }
 
   derivedKeyRules = [

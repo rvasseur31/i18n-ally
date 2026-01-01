@@ -14,8 +14,7 @@ export async function NewKey(keypath?: string) {
       ignoreFocusOut: true,
     })
 
-    if (!keypath)
-      return
+    if (!keypath) return
 
     if (!keypathValidate(keypath)) {
       window.showWarningMessage(i18n.t('prompt.invalid_keypath'))
@@ -32,27 +31,27 @@ export async function NewKey(keypath?: string) {
       return
     }
 
-    if (shouldOverride !== 'override')
-      return
+    if (shouldOverride !== 'override') return
 
     const sourceLocale = Config.sourceLanguage
     const value = await promptEdit(keypath, sourceLocale, '')
 
-    if (value === undefined)
-      return
+    if (value === undefined) return
 
     if (Config.keepFulfilled) {
       await CurrentFile.loader.write(
-        Global.allLocales.map(locale => ({
-          value: sourceLocale === locale ? value : '',
-          keypath,
-          filepath: undefined,
-          locale,
-        } as PendingWrite)),
+        Global.allLocales.map(
+          locale =>
+            ({
+              value: sourceLocale === locale ? value : '',
+              keypath,
+              filepath: undefined,
+              locale,
+            }) as PendingWrite,
+        ),
         false,
       )
-    }
-    else {
+    } else {
       await CurrentFile.loader.write({
         value,
         keypath,
@@ -60,8 +59,7 @@ export async function NewKey(keypath?: string) {
         locale: sourceLocale,
       })
     }
-  }
-  catch (err: any) {
+  } catch (err: any) {
     Log.error(err.toString())
   }
 }

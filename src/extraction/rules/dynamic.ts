@@ -5,11 +5,9 @@ export class DynamicExtractionRule extends ExtractionRule {
 
   shouldExtract(str: string) {
     // includes $t
-    if (str.match(/(?:^|[$.\b])t\w?\(/u))
-      return ExtractionScore.MustExclude
+    if (str.match(/(?:^|[$.\b])t\w?\(/u)) return ExtractionScore.MustExclude
     // not quotes at all
-    if (!str.match(/(?:['"`]|\$\{)/))
-      return ExtractionScore.MustExclude
+    if (!str.match(/(?:['"`]|\$\{)/)) return ExtractionScore.MustExclude
     return ExtractionScore.ShouldInclude
   }
 }

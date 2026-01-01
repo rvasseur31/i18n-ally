@@ -8,7 +8,7 @@ import { regexFindKeys } from '~/utils'
 import { KeyInDocument, CurrentFile } from '~/core'
 
 export interface KeyUsages {
-  type: 'code'| 'locale'
+  type: 'code' | 'locale'
   keys: KeyInDocument[]
   locale: string
   namespace?: string
@@ -20,18 +20,14 @@ export class KeyDetector {
     const regs = Global.getUsageMatchRegex()
 
     for (const reg of regs) {
-      (text.match(reg) || [])
-        .forEach(key =>
-          keys.add(key.replace(reg, '$1')),
-        )
+      ;(text.match(reg) || []).forEach(key => keys.add(key.replace(reg, '$1')))
     }
 
     return Array.from(keys)
   }
 
   static getKeyRange(document: TextDocument, position: Position, dotEnding?: boolean) {
-    if (Config.disablePathParsing)
-      dotEnding = true
+    if (Config.disablePathParsing) dotEnding = true
 
     const regs = Global.getUsageMatchRegex(document.languageId, document.uri.fsPath)
     for (const regex of regs) {
@@ -40,10 +36,8 @@ export class KeyDetector {
         const key = document.getText(range).replace(regex, '$1')
 
         if (dotEnding) {
-          if (!key || key.endsWith('.'))
-            return { range, key }
-        }
-        else {
+          if (!key || key.endsWith('.')) return { range, key }
+        } else {
           return { range, key }
         }
       }
@@ -59,21 +53,20 @@ export class KeyDetector {
     const scopes = Global.enabledFrameworks.flatMap(f => f.getScopeRange(document) || [])
     if (scopes.length > 0) {
       const offset = document.offsetAt(position)
-      return scopes.filter(s => s.start < offset && offset < s.end).map(s => s.namespace).join('.')
+      return scopes
+        .filter(s => s.start < offset && offset < s.end)
+        .map(s => s.namespace)
+        .join('.')
     }
   }
 
   static getKeyAndRange(document: TextDocument, position: Position, dotEnding?: boolean) {
     const { range, key } = KeyDetector.getKeyRange(document, position, dotEnding) || {}
-    if (!range || key === undefined)
-      return
+    if (!range || key === undefined) return
 
     const end = range.end.character - 1
     const start = end - key.length
-    const keyRange = new Range(
-      new Position(range.end.line, start),
-      new Position(range.end.line, end),
-    )
+    const keyRange = new Range(new Position(range.end.line, start), new Position(range.end.line, end))
     return {
       range: keyRange,
       key,
@@ -82,7 +75,7 @@ export class KeyDetector {
 
   static init(ctx: ExtensionContext) {
     workspace.onDidChangeTextDocument(
-      (e) => {
+      e => {
         delete this._get_keys_cache[e.document.uri.fsPath]
       },
       null,
@@ -92,14 +85,18 @@ export class KeyDetector {
 
   private static _get_keys_cache: Record<string, KeyInDocument[]> = {}
 
-  static getKeys(document: TextDocument | string, regs?: RegExp[], dotEnding?: boolean, scopes?: ScopeRange[]): KeyInDocument[] {
+  static getKeys(
+    document: TextDocument | string,
+    regs?: RegExp[],
+    dotEnding?: boolean,
+    scopes?: ScopeRange[],
+  ): KeyInDocument[] {
     let text = ''
-    let rewriteContext: RewriteKeyContext| undefined
+    let rewriteContext: RewriteKeyContext | undefined
     let filepath = ''
     if (typeof document !== 'string') {
       filepath = document.uri.fsPath
-      if (this._get_keys_cache[filepath])
-        return this._get_keys_cache[filepath]
+      if (this._get_keys_cache[filepath]) return this._get_keys_cache[filepath]
 
       regs = regs ?? Global.getUsageMatchRegex(document.languageId, filepath)
       text = document.getText()
@@ -107,21 +104,18 @@ export class KeyDetector {
         targetFile: filepath,
       }
       scopes = scopes || Global.enabledFrameworks.flatMap(f => f.getScopeRange(document) || [])
-    }
-    else {
+    } else {
       regs = Global.getUsageMatchRegex()
       text = document
     }
 
     const keys = regexFindKeys(text, regs, dotEnding, rewriteContext, scopes)
-    if (filepath)
-      this._get_keys_cache[filepath] = keys
+    if (filepath) this._get_keys_cache[filepath] = keys
     return keys
   }
 
   static getUsages(document: TextDocument, loader?: Loader): KeyUsages | undefined {
-    if (loader == null)
-      loader = CurrentFile.loader
+    if (loader == null) loader = CurrentFile.loader
 
     let keys: KeyInDocument[] = []
     let locale = Config.displayLanguage
@@ -134,21 +128,17 @@ export class KeyDetector {
     if (localeFile) {
       type = 'locale'
       const parser = Global.enabledParsers.find(p => p.annotationLanguageIds.includes(document.languageId))
-      if (!parser)
-        return
+      if (!parser) return
 
-      if (Global.namespaceEnabled)
-        namespace = loader.getNamespaceFromFilepath(filepath)
+      if (Global.namespaceEnabled) namespace = loader.getNamespaceFromFilepath(filepath)
 
       locale = localeFile.locale
-      keys = parser.annotationGetKeys(document)
-        .filter(({ key }) => loader!.getTreeNodeByKey(key)?.type === 'node')
+      keys = parser.annotationGetKeys(document).filter(({ key }) => loader!.getTreeNodeByKey(key)?.type === 'node')
     }
     // code
     else if (Global.isLanguageIdSupported(document.languageId)) {
       keys = KeyDetector.getKeys(document)
-    }
-    else {
+    } else {
       return
     }
 

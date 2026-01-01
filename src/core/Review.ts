@@ -7,7 +7,14 @@ import { cleanObject } from '../utils/cleanObject'
 import { promptEdit } from '../utils/prompts'
 import { FILEWATCHER_TIMEOUT } from '../meta'
 import { Config } from './Config'
-import { ReviewData, ReviewComment, ReviewCommentWithMeta, TranslationCandidate, TranslationCandidateWithMeta, PendingWrite } from './types'
+import {
+  ReviewData,
+  ReviewComment,
+  ReviewCommentWithMeta,
+  TranslationCandidate,
+  TranslationCandidateWithMeta,
+  PendingWrite,
+} from './types'
 import { CurrentFile } from './CurrentFile'
 import { Log, getValue, setValue } from '~/utils'
 
@@ -33,21 +40,16 @@ export class Reviews {
   }
 
   private set(key: string, field: string, value?: any, locale?: string, save = true) {
-    const path = locale
-      ? ['reviews', key, 'locales', locale, field]
-      : ['reviews', key, field]
+    const path = locale ? ['reviews', key, 'locales', locale, field] : ['reviews', key, field]
 
     setValue(this.data, path, value)
 
     this._onDidChange.fire(key)
-    if (save)
-      return this.save()
+    if (save) return this.save()
   }
 
   private get(key: string, field: string, locale?: string) {
-    const path = locale
-      ? ['reviews', key, 'locales', locale, field]
-      : ['reviews', key, field]
+    const path = locale ? ['reviews', key, 'locales', locale, field] : ['reviews', key, field]
 
     return getValue(this.data, path)
   }
@@ -56,11 +58,11 @@ export class Reviews {
     return this.set(key, 'description', description)
   }
 
-  getDescription(key: string): string |undefined {
+  getDescription(key: string): string | undefined {
     return this.get(key, 'description')
   }
 
-  async setTranslationCandidates(items: {key: string; locale: string; translation?: TranslationCandidate}[]) {
+  async setTranslationCandidates(items: { key: string; locale: string; translation?: TranslationCandidate }[]) {
     for (const { key, translation, locale } of items)
       await this.set(key, 'translation_candidate', translation, locale, false)
     this.save()
@@ -70,13 +72,12 @@ export class Reviews {
     return this.get(key, 'translation_candidate', locale)
   }
 
-  async applyTranslationCandidates(candidates: {keypath: string; locale: string}[]) {
+  async applyTranslationCandidates(candidates: { keypath: string; locale: string }[]) {
     const pendings: PendingWrite[] = []
 
     for (const { keypath, locale } of candidates) {
       const translation = this.getTranslationCandidate(keypath, locale)
-      if (!translation)
-        break
+      if (!translation) break
 
       pendings.push({
         keypath,
@@ -86,16 +87,14 @@ export class Reviews {
     }
     CurrentFile.loader.write(pendings)
 
-    for (const { keypath, locale } of candidates)
-      await this.discardTranslationCandidate(keypath, locale, false)
+    for (const { keypath, locale } of candidates) await this.discardTranslationCandidate(keypath, locale, false)
 
     await this.save()
   }
 
   async applyTranslationCandidate(key: string, locale: string, override?: string) {
     const translation = this.getTranslationCandidate(key, locale)
-    if (!translation)
-      return
+    if (!translation) return
 
     await CurrentFile.loader.write({
       keypath: key,
@@ -112,12 +111,10 @@ export class Reviews {
 
   async promptEditTranslation(key: any, locale: any) {
     const tc = this.getTranslationCandidate(key, locale)
-    if (!tc)
-      throw new ReferenceError(`No translation candidate found for ${key} on ${locale}`)
+    if (!tc) throw new ReferenceError(`No translation candidate found for ${key} on ${locale}`)
     let value: string | undefined = tc?.text
     value = await promptEdit(key, locale, value)
-    if (value)
-      await this.applyTranslationCandidate(key, locale, value.replace(/\\n/g, '\n'))
+    if (value) await this.applyTranslationCandidate(key, locale, value.replace(/\\n/g, '\n'))
   }
 
   getReviews(key: string) {
@@ -135,7 +132,7 @@ export class Reviews {
     return this.set(key, 'comments', comments, locale)
   }
 
-  editComment(key: string, locale: string, data: Partial<ReviewComment> & {id: string}) {
+  editComment(key: string, locale: string, data: Partial<ReviewComment> & { id: string }) {
     const comments: ReviewComment[] = this.get(key, 'comments', locale) || []
     const comment = comments.find(i => i.id === data.id)
     if (comment) {
@@ -146,10 +143,8 @@ export class Reviews {
 
   getComments(key: string, locale: string, hideResolved = true) {
     const comments: ReviewComment[] = this.get(key, 'comments', locale) || []
-    if (hideResolved)
-      return comments.filter(i => !i.resolved)
-    else
-      return comments
+    if (hideResolved) return comments.filter(i => !i.resolved)
+    else return comments
   }
 
   getCommentById(key: string, locale: string, id: string) {
@@ -159,20 +154,18 @@ export class Reviews {
   }
 
   getCommentsByLocale(locale: string, hideResolved = true): ReviewCommentWithMeta[] {
-    return Object.keys(this.data?.reviews || {})
-      .flatMap(keypath => this.getComments(keypath, locale, hideResolved)
-        .map((i) => {
-          return { ...i, locale, keypath } as ReviewCommentWithMeta
-        }),
-      )
+    return Object.keys(this.data?.reviews || {}).flatMap(keypath =>
+      this.getComments(keypath, locale, hideResolved).map(i => {
+        return { ...i, locale, keypath } as ReviewCommentWithMeta
+      }),
+    )
   }
 
   getTranslationCandidatesLocale(locale: string) {
     return Object.keys(this.data?.reviews || {})
-      .map((keypath) => {
+      .map(keypath => {
         const i = this.getTranslationCandidate(keypath, locale)
-        if (!i)
-          return undefined
+        if (!i) return undefined
         return { ...i, locale, keypath } as TranslationCandidateWithMeta
       })
       .filter(i => i) as TranslationCandidateWithMeta[]
@@ -183,10 +176,8 @@ export class Reviews {
     const comment = comments.find(i => i.id === id)
 
     if (comment) {
-      if (Config.reviewRemoveCommentOnResolved)
-        comments.splice(comments.indexOf(comment), 1)
-      else
-        comment.resolved = true
+      if (Config.reviewRemoveCommentOnResolved) comments.splice(comments.indexOf(comment), 1)
+      else comment.resolved = true
       await this.set(key, 'comments', comments, locale)
       return comment
     }
@@ -210,20 +201,17 @@ export class Reviews {
       prompt: `Description for "${keypath}"`,
       ignoreFocusOut: true,
     })
-    if (value !== undefined)
-      return this.setDescription(keypath, value)
+    if (value !== undefined) return this.setDescription(keypath, value)
   }
 
   private async load() {
     if (fs.existsSync(this.filepath)) {
-      if (fs.statSync(this.filepath).mtimeMs === this.mtime)
-        return
+      if (fs.statSync(this.filepath).mtimeMs === this.mtime) return
 
       Log.info('📤 Loading review data')
       const content = await fs.readFile(this.filepath, 'utf-8')
-      this.data = load(content) as any || { reviews: {} }
-    }
-    else {
+      this.data = (load(content) as any) || { reviews: {} }
+    } else {
       this.data = { reviews: {} }
     }
     this.data.reviews = this.data.reviews || {}

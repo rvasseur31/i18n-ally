@@ -13,8 +13,7 @@ function setCache<T>(key: string, value: T): T {
 }
 
 function getCache<T = any>(key: string, value?: T): T {
-  if (cache[key] === undefined)
-    cache[key] = value
+  if (cache[key] === undefined) cache[key] = value
 
   return cache[key]
 }

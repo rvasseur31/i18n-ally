@@ -25,14 +25,22 @@ export class CurrentFile {
   }
 
   static watch(ctx: ExtensionContext) {
-    ctx.subscriptions.push(workspace.onDidSaveTextDocument(e => this._currentUri && e?.uri === this._currentUri && this.update(e.uri)))
-    ctx.subscriptions.push(workspace.onDidChangeTextDocument(e => this._currentUri && e?.document?.uri === this._currentUri && this.throttleUpdate(e.document.uri)))
+    ctx.subscriptions.push(
+      workspace.onDidSaveTextDocument(e => this._currentUri && e?.uri === this._currentUri && this.update(e.uri)),
+    )
+    ctx.subscriptions.push(
+      workspace.onDidChangeTextDocument(
+        e => this._currentUri && e?.document?.uri === this._currentUri && this.throttleUpdate(e.document.uri),
+      ),
+    )
     ctx.subscriptions.push(window.onDidChangeActiveTextEditor(e => e?.document && this.update(e.document.uri)))
-    ctx.subscriptions.push(Global.onDidChangeLoader(() => {
-      this.invalidate()
-      this.updateLoaders()
-      this._composed_loader.fire('{Config}')
-    }))
+    ctx.subscriptions.push(
+      Global.onDidChangeLoader(() => {
+        this.invalidate()
+        this.updateLoaders()
+        this._composed_loader.fire('{Config}')
+      }),
+    )
     ctx.subscriptions.push(Analyst.watch())
     this.update(window.activeTextEditor?.document.uri)
   }
@@ -40,8 +48,7 @@ export class CurrentFile {
   static throttleUpdate = throttle((uri?: Uri) => CurrentFile.update(uri), 100)
 
   static update(uri?: Uri) {
-    if (!Global.enabled)
-      return
+    if (!Global.enabled) return
 
     this._currentUri = uri
     this.invalidate()
@@ -50,14 +57,12 @@ export class CurrentFile {
         if (uri && this._vue_sfc_loader.uri.path === uri.path) {
           this._vue_sfc_loader.load()
           return
-        }
-        else {
+        } else {
           this._vue_sfc_loader.dispose()
           this._vue_sfc_loader = null
         }
       }
-      if (uri && uri.fsPath.endsWith('.vue'))
-        this._vue_sfc_loader = new VueSfcLoader(uri)
+      if (uri && uri.fsPath.endsWith('.vue')) this._vue_sfc_loader = new VueSfcLoader(uri)
     }
 
     this.updateLoaders()
@@ -67,8 +72,7 @@ export class CurrentFile {
   static updateLoaders() {
     const loaders: Loader[] = [Global.loader]
 
-    if (this.VueSfc && this._vue_sfc_loader)
-      loaders.push(this._vue_sfc_loader)
+    if (this.VueSfc && this._vue_sfc_loader) loaders.push(this._vue_sfc_loader)
 
     this._composed_loader.loaders = loaders
   }
@@ -91,8 +95,7 @@ export class CurrentFile {
         this._onHardStringDetected.fire(this.hardStrings)
       }
       return this.hardStrings
-    }
-    catch (e) {
+    } catch (e) {
       Log.error('Failed to extract current file', false)
       Log.error(e, false)
       this.hardStrings = []

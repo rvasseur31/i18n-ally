@@ -7,10 +7,7 @@ export default class GoogleTranslate extends TranslateEngine {
   apiRootIfUserSuppliedKey = 'https://translation.googleapis.com'
 
   async translate(options: TranslateOptions) {
-    let {
-      from = 'auto',
-      to = 'auto',
-    } = options
+    let { from = 'auto', to = 'auto' } = options
 
     const key = Config.googleApiKey
 
@@ -39,17 +36,13 @@ export default class GoogleTranslate extends TranslateEngine {
 
   convertToSupportedLocalesForGoogleCloud(locale: string): string {
     const longSupportedLocales = ['ceb', 'zh-TW', 'haw', 'hmn', 'auto']
-    if (locale && !longSupportedLocales.includes(locale))
-      locale = locale.substring(0, 2)
+    if (locale && !longSupportedLocales.includes(locale)) locale = locale.substring(0, 2)
 
     return locale
   }
 
   transform(response: any, options: TranslateOptions, apiKeySuppliedByUser: boolean): TranslateResult {
-    const {
-      text,
-      to = 'auto',
-    } = options
+    const { text, to = 'auto' } = options
 
     const r: TranslateResult = {
       text,
@@ -66,11 +59,8 @@ export default class GoogleTranslate extends TranslateEngine {
           result.push(v.translatedText)
         })
         r.result = result
-      }
-      catch (e) {}
-    }
-
-    else {
+      } catch {}
+    } else {
       // 尝试获取详细释义
       try {
         const detailed: string[] = []
@@ -78,8 +68,7 @@ export default class GoogleTranslate extends TranslateEngine {
           detailed.push(`${v.pos}：${(v.terms.slice(0, 3) || []).join(',')}`)
         })
         r.detailed = detailed
-      }
-      catch (e) {}
+      } catch {}
 
       // 尝试取得翻译结果
       try {
@@ -88,12 +77,10 @@ export default class GoogleTranslate extends TranslateEngine {
           result.push(v.trans)
         })
         r.result = result
-      }
-      catch (e) {}
+      } catch {}
     }
 
-    if (!r.detailed && !r.result)
-      r.error = new Error('No result')
+    if (!r.detailed && !r.result) r.error = new Error('No result')
 
     return r
   }

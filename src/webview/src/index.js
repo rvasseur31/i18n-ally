@@ -49,25 +49,27 @@ const i18n = createI18n({
 
 const store = createStore({
   state: () => {
-    return Object.assign({
-      ready: false,
-      config: {
-        debug: false,
-        sourceLanguage: 'en',
-        displayLanguage: 'en',
-        enabledFrameworks: [],
-        ignoredLocales: [],
-        extensionRoot: '',
-        flags: [],
-        locales: [],
+    return Object.assign(
+      {
+        ready: false,
+        config: {
+          debug: false,
+          sourceLanguage: 'en',
+          displayLanguage: 'en',
+          enabledFrameworks: [],
+          ignoredLocales: [],
+          extensionRoot: '',
+          flags: [],
+          locales: [],
+        },
+        context: {},
+        i18n: {},
+        route: 'welcome',
+        routeData: {},
       },
-      context: {},
-      i18n: {},
-      route: 'welcome',
-      routeData: {},
-    },
-    vscode.getState(),
-    { ready: false })
+      vscode.getState(),
+      { ready: false },
+    )
   },
   mutations: {
     config(state, data) {
@@ -90,7 +92,7 @@ const store = createStore({
   },
 })
 
-window.addEventListener('message', (event) => {
+window.addEventListener('message', event => {
   const message = event.data
   switch (message.type) {
     case 'ready':

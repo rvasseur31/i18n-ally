@@ -14,33 +14,15 @@ class ReactI18nextFramework extends Framework {
   namespaceDelimitersRegex = /[:/]/g
 
   detection = {
-    packageJSON: [
-      'react-i18next',
-      'next-i18next',
-    ],
+    packageJSON: ['react-i18next', 'next-i18next'],
   }
 
-  languageIds: LanguageId[] = [
-    'javascript',
-    'typescript',
-    'javascriptreact',
-    'typescriptreact',
-    'ejs',
-  ]
+  languageIds: LanguageId[] = ['javascript', 'typescript', 'javascriptreact', 'typescriptreact', 'ejs']
 
   // for visualize the regex, you can use https://regexper.com/
-  usageMatchRegex = [
-    '\\Wt\\(\\s*[\'"`]({key})[\'"`]',
-    '\\Wi18nKey=[\'"`]({key})[\'"`]',
-  ]
+  usageMatchRegex = ['\\Wt\\(\\s*[\'"`]({key})[\'"`]', '\\Wi18nKey=[\'"`]({key})[\'"`]']
 
-  supportAutoExtraction = [
-    'javascript',
-    'typescript',
-    'javascriptreact',
-    'typescriptreact',
-    'html',
-  ]
+  supportAutoExtraction = ['javascript', 'typescript', 'javascriptreact', 'typescriptreact', 'html']
 
   derivedKeyRules = [
     '{key}_plural',
@@ -74,30 +56,21 @@ class ReactI18nextFramework extends Framework {
         DefaultDynamicExtractionsRules,
         Config.extractParserHTMLOptions,
         // <script>
-        script => extractionsParsers.babel.detect(
-          script,
-          DefaultExtractionRules,
-          DefaultDynamicExtractionsRules,
-          Config.extractParserBabelOptions,
-        ),
+        script =>
+          extractionsParsers.babel.detect(
+            script,
+            DefaultExtractionRules,
+            DefaultDynamicExtractionsRules,
+            Config.extractParserBabelOptions,
+          ),
       )
-    }
-    else {
-      return extractionsParsers.babel.detect(
-        text,
-        DefaultExtractionRules,
-        DefaultDynamicExtractionsRules,
-      )
+    } else {
+      return extractionsParsers.babel.detect(text, DefaultExtractionRules, DefaultDynamicExtractionsRules)
     }
   }
 
   refactorTemplates(keypath: string) {
-    return [
-      `{t('${keypath}')}`,
-      `t('${keypath}')`,
-      `<Trans i18nKey="${keypath}"></Trans>`,
-      keypath,
-    ]
+    return [`{t('${keypath}')}`, `t('${keypath}')`, `<Trans i18nKey="${keypath}"></Trans>`, keypath]
   }
 
   rewriteKeys(key: string, source: RewriteKeySource, context: RewriteKeyContext = {}) {
@@ -105,9 +78,9 @@ class ReactI18nextFramework extends Framework {
 
     // when explicitly set the namespace, ignore current namespace scope
     if (
-      this.namespaceDelimiters.some(d => key.includes(d))
-      && context.namespace
-      && dottedKey.startsWith(context.namespace.split(this.namespaceDelimitersRegex).join('.'))
+      this.namespaceDelimiters.some(d => key.includes(d)) &&
+      context.namespace &&
+      dottedKey.startsWith(context.namespace.split(this.namespaceDelimitersRegex).join('.'))
     )
       // +1 for the an extra `.`
       key = key.slice(context.namespace.length + 1)
@@ -119,8 +92,7 @@ class ReactI18nextFramework extends Framework {
   // useTranslation
   // https://react.i18next.com/latest/usetranslation-hook#loading-namespaces
   getScopeRange(document: TextDocument): ScopeRange[] | undefined {
-    if (!this.languageIds.includes(document.languageId as any))
-      return
+    if (!this.languageIds.includes(document.languageId as any)) return
 
     const ranges: ScopeRange[] = []
     const text = document.getText()
@@ -132,8 +104,7 @@ class ReactI18nextFramework extends Framework {
     const regT = /\Wt\([^)]*?ns:\s*['"`](\w+)['"`]/g
 
     for (const match of text.matchAll(regT)) {
-      if (typeof match.index !== 'number')
-        continue
+      if (typeof match.index !== 'number') continue
 
       if (match[1]) {
         ranges.push({
@@ -148,8 +119,7 @@ class ReactI18nextFramework extends Framework {
     const regTrans = /\Wi18nKey=(?:(?!\/Trans>|\/>)[\S\s])*?ns=\s*['"`](.+?)['"`]/g
 
     for (const match of text.matchAll(regTrans)) {
-      if (typeof match.index !== 'number')
-        continue
+      if (typeof match.index !== 'number') continue
 
       if (match[1]) {
         ranges.push({
@@ -165,12 +135,10 @@ class ReactI18nextFramework extends Framework {
     const regUse = /useTranslation\(\s*\[?\s*['"`](.*?)['"`]/g
     let prevGlobalScope = false
     for (const match of text.matchAll(regUse)) {
-      if (typeof match.index !== 'number')
-        continue
+      if (typeof match.index !== 'number') continue
 
       // end previous scope
-      if (prevGlobalScope)
-        ranges[ranges.length - 1].end = match.index
+      if (prevGlobalScope) ranges[ranges.length - 1].end = match.index
 
       // start a new scope if namespace is provided
       if (match[1]) {

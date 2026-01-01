@@ -5,24 +5,14 @@ import { LanguageId } from '~/utils'
 import { Config, Global } from '~/core'
 
 class RubyRailsFramework extends Framework {
-  id= 'ruby-rails'
-  display= 'Ruby on Rails'
+  id = 'ruby-rails'
+  display = 'Ruby on Rails'
 
   detection = {
-    gemfile: [
-      'rails',
-      'rails-i18n',
-    ],
+    gemfile: ['rails', 'rails-i18n'],
   }
 
-  languageIds: LanguageId[] = [
-    'ruby',
-    'haml',
-    'slim',
-    'html.erb',
-    'js.erb',
-    'erb',
-  ]
+  languageIds: LanguageId[] = ['ruby', 'haml', 'slim', 'html.erb', 'js.erb', 'erb']
 
   usageMatchRegex = [
     '[^\\w\\d]t(?:\\(| )[\'"`]({key})[\'"`]',
@@ -31,10 +21,7 @@ class RubyRailsFramework extends Framework {
   ]
 
   refactorTemplates(keypath: string) {
-    return [
-      `t(".${keypath}")`,
-      keypath,
-    ]
+    return [`t(".${keypath}")`, keypath]
   }
 
   preprocessData(data: any, context: DataProcessContext): object {

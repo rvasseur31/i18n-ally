@@ -5,13 +5,11 @@ import { LocaleTree } from '../Nodes'
 import { Global } from '../Global'
 import { Config } from '../Config'
 import { Loader } from './Loader'
-import { parseVueSfc, writeVueSfc, SFCI18nBlock, MetaLocaleMessage } from './VueSfcParser'
+import { parseVueSfc, writeVueSfc, SFCI18nBlock, MetaLocaleMessage } from '~/parsers/VueSfcParser'
 import { Log, applyPendingToObject, File, unflatten } from '~/utils'
 
 export class VueSfcLoader extends Loader {
-  constructor(
-    public readonly uri: Uri,
-  ) {
+  constructor(public readonly uri: Uri) {
     super(`[SFC]${uri.fsPath}`)
 
     this.load()
@@ -64,8 +62,7 @@ export class VueSfcLoader extends Loader {
 
     const tree = new LocaleTree({ keypath: '', features: { VueSfc: true } })
     for (const [index, section] of this._parsedSections.entries()) {
-      if (!section.messages)
-        continue
+      if (!section.messages) continue
       const messages = unflatten(section.messages)
       for (const [locale, value] of Object.entries(messages)) {
         this._locales.add(Config.normalizeLocale(locale))
@@ -80,19 +77,16 @@ export class VueSfcLoader extends Loader {
   }
 
   async write(pendings: PendingWrite | PendingWrite[]) {
-    if (!Array.isArray(pendings))
-      pendings = [pendings]
+    if (!Array.isArray(pendings)) pendings = [pendings]
     pendings = pendings.filter(i => i)
 
-    if (!this._meta)
-      return
+    if (!this._meta) return
 
     for (const pending of pendings) {
       const record = this.getRecordByKey(pending.keypath, pending.locale, true)
-      if (!record)
-        continue
+      if (!record) continue
 
-      const sectionIndex = record.meta ? (record.meta.VueSfcSectionIndex || 0) : 0
+      const sectionIndex = record.meta ? record.meta.VueSfcSectionIndex || 0 : 0
 
       const section = this._meta.components[this.filepath][sectionIndex]
 
@@ -115,8 +109,7 @@ export class VueSfcLoader extends Loader {
       edit.replace(this.uri, new Range(doc.positionAt(0), doc.positionAt(Infinity)), newContent)
 
       await workspace.applyEdit(edit)
-    }
-    else {
+    } else {
       await File.write(this.filepath, newContent)
     }
 

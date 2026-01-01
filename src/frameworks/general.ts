@@ -12,33 +12,17 @@ class GeneralFramework extends Framework {
     packageJSON: () => true,
   }
 
-  languageIds: LanguageId[] = [
-    'javascript',
-    'typescript',
-    'javascriptreact',
-    'typescriptreact',
-    'html',
-  ]
+  languageIds: LanguageId[] = ['javascript', 'typescript', 'javascriptreact', 'typescriptreact', 'html']
 
   refactorTemplates(keypath: string, args: string[] = []) {
     let params = `'${keypath}'`
-    if (args.length)
-      params += `, [${args.join(', ')}]`
-    return [
-      `$t(${params})`,
-      keypath,
-    ]
+    if (args.length) params += `, [${args.join(', ')}]`
+    return [`$t(${params})`, keypath]
   }
 
   usageMatchRegex = []
 
-  supportAutoExtraction = [
-    'javascript',
-    'typescript',
-    'javascriptreact',
-    'typescriptreact',
-    'html',
-  ]
+  supportAutoExtraction = ['javascript', 'typescript', 'javascriptreact', 'typescriptreact', 'html']
 
   detectHardStrings(doc: TextDocument) {
     const lang = doc.languageId
@@ -51,20 +35,16 @@ class GeneralFramework extends Framework {
         DefaultDynamicExtractionsRules,
         Config.extractParserHTMLOptions,
         // <script>
-        script => extractionsParsers.babel.detect(
-          script,
-          DefaultExtractionRules,
-          DefaultDynamicExtractionsRules,
-          Config.extractParserBabelOptions,
-        ),
+        script =>
+          extractionsParsers.babel.detect(
+            script,
+            DefaultExtractionRules,
+            DefaultDynamicExtractionsRules,
+            Config.extractParserBabelOptions,
+          ),
       )
-    }
-    else {
-      return extractionsParsers.babel.detect(
-        text,
-        DefaultExtractionRules,
-        DefaultDynamicExtractionsRules,
-      )
+    } else {
+      return extractionsParsers.babel.detect(text, DefaultExtractionRules, DefaultDynamicExtractionsRules)
     }
   }
 }

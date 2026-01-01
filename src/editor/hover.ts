@@ -44,8 +44,7 @@ function getAvaliableCommands(record?: LocaleRecord, keyIndex?: number) {
           ? makeMarkdownCommand(Commands.open_in_editor, { keypath, locale, keyIndex })
           : makeMarkdownCommand(Commands.edit_key, { keypath, locale }),
       })
-    }
-    else {
+    } else {
       commands.push(EmptyButton)
     }
 
@@ -55,8 +54,7 @@ function getAvaliableCommands(record?: LocaleRecord, keyIndex?: number) {
         icon: '↗️', // '$(link-external)' // AWAIT_VSCODE_FIX
         command: makeMarkdownCommand(Commands.open_key, { keypath, locale }),
       })
-    }
-    else {
+    } else {
       commands.push(EmptyButton)
     }
   }
@@ -64,12 +62,16 @@ function getAvaliableCommands(record?: LocaleRecord, keyIndex?: number) {
   return commands
 }
 
-export function createTable(visibleLocales: string[], records: Record<string, LocaleRecord>, maxLength = 0, keyIndex?: number) {
+export function createTable(
+  visibleLocales: string[],
+  records: Record<string, LocaleRecord>,
+  maxLength = 0,
+  keyIndex?: number,
+) {
   const transTable = visibleLocales
-    .flatMap((locale) => {
+    .flatMap(locale => {
       const record = records[locale]
-      if (!record)
-        return []
+      if (!record) return []
 
       const row = {
         locale: decorateLocale(locale),
@@ -77,16 +79,13 @@ export function createTable(visibleLocales: string[], records: Record<string, Lo
         commands: '',
       }
       const commands = getAvaliableCommands(record, keyIndex)
-      row.commands = commands
-        .map(c => typeof c === 'string' ? c : `[${c.icon}](${c.command} "${c.text}")`)
-        .join(' ')
+      row.commands = commands.map(c => (typeof c === 'string' ? c : `[${c.icon}](${c.command} "${c.text}")`)).join(' ')
       return [row]
     })
     .map(item => `| | **${item.locale}** | | ${item.value} | ${item.commands} |`)
     .join('\n')
 
-  if (!transTable)
-    return ''
+  if (!transTable) return ''
 
   return `| | | | | |\n|---|---:|---|---|---:|\n${transTable}\n| | | | | |`
 }
@@ -94,8 +93,7 @@ export function createTable(visibleLocales: string[], records: Record<string, Lo
 export function createHover(keypath: string, maxLength = 0, mainLocale?: string, keyIndex?: number) {
   const loader = CurrentFile.loader
   const records = loader.getTranslationsByKey(keypath, undefined)
-  if (!Object.keys(records).length)
-    return undefined
+  if (!Object.keys(records).length) return undefined
 
   mainLocale = mainLocale || Config.displayLanguage
 
@@ -118,8 +116,6 @@ export function createHover(keypath: string, maxLength = 0, mainLocale?: string,
  *
  * But nothing is rendered
  */
-function a() {
-
-}
+function a() {}
 
 a()

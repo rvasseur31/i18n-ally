@@ -5,30 +5,32 @@ import { ReviewTranslationCandidates } from '~/views/items/ReviewTranslationCand
 import i18n from '~/i18n'
 import { Global, TranslationCandidateWithMeta, ReviewCommentWithMeta, Telemetry, TelemetryKey } from '~/core'
 
-export default <ExtensionModule> function() {
+export default (<ExtensionModule>function () {
   return [
-    commands.registerCommand(Commands.review_apply_translation,
-      async(candidate: TranslationCandidateWithMeta | ReviewTranslationCandidates) => {
+    commands.registerCommand(
+      Commands.review_apply_translation,
+      async (candidate: TranslationCandidateWithMeta | ReviewTranslationCandidates) => {
         Telemetry.track(TelemetryKey.ReviewApplyTranslation)
 
         if (candidate instanceof ReviewTranslationCandidates) {
           const candidates = candidate.candidates
 
-          if (!candidates.length)
-            return
+          if (!candidates.length) return
 
           if (candidates.length === 1) {
             // fallback to single item mode
             candidate = candidates[0]
-          }
-          else {
+          } else {
             const Yes = i18n.t('prompt.button_yes')
 
-            if (Yes === await window.showInformationMessage(
-              i18n.t('prompt.applying_translation_candidate_multiple', candidates.length),
-              { modal: true },
-              Yes,
-            ))
+            if (
+              Yes ===
+              (await window.showInformationMessage(
+                i18n.t('prompt.applying_translation_candidate_multiple', candidates.length),
+                { modal: true },
+                Yes,
+              ))
+            )
               await Global.reviews.applyTranslationCandidates(candidates)
 
             return
@@ -47,30 +49,25 @@ export default <ExtensionModule> function() {
           Discard,
         )
 
-        if (result === EditApply)
-          await Global.reviews.promptEditTranslation(candidate.keypath, candidate.locale)
-        else if (result === Apply)
-          await Global.reviews.applyTranslationCandidate(candidate.keypath, candidate.locale)
+        if (result === EditApply) await Global.reviews.promptEditTranslation(candidate.keypath, candidate.locale)
+        else if (result === Apply) await Global.reviews.applyTranslationCandidate(candidate.keypath, candidate.locale)
         else if (result === Discard)
           await Global.reviews.discardTranslationCandidate(candidate.keypath, candidate.locale)
       },
     ),
 
-    commands.registerCommand(Commands.review_apply_suggestion,
-      async(comment: ReviewCommentWithMeta) => {
-        Telemetry.track(TelemetryKey.ReviewApplySuggestion)
+    commands.registerCommand(Commands.review_apply_suggestion, async (comment: ReviewCommentWithMeta) => {
+      Telemetry.track(TelemetryKey.ReviewApplySuggestion)
 
-        const Apply = i18n.t('prompt.button_apply')
+      const Apply = i18n.t('prompt.button_apply')
 
-        const result = await window.showInformationMessage(
-          i18n.t('prompt.applying_suggestion', comment.keypath, comment.suggestion),
-          { modal: true },
-          Apply,
-        )
+      const result = await window.showInformationMessage(
+        i18n.t('prompt.applying_suggestion', comment.keypath, comment.suggestion),
+        { modal: true },
+        Apply,
+      )
 
-        if (result === Apply)
-          await Global.reviews.applySuggestion(comment.keypath, comment.locale, comment.id)
-      },
-    ),
+      if (result === Apply) await Global.reviews.applySuggestion(comment.keypath, comment.locale, comment.id)
+    }),
   ]
-}
+})

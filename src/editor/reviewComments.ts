@@ -1,4 +1,18 @@
-import { comments, CommentController, TextDocument, Range, Disposable, commands, CommentReply, CommentAuthorInformation, Uri, Comment, MarkdownString, CommentMode, CommentThread } from 'vscode'
+import {
+  comments,
+  CommentController,
+  TextDocument,
+  Range,
+  Disposable,
+  commands,
+  CommentReply,
+  CommentAuthorInformation,
+  Uri,
+  Comment,
+  MarkdownString,
+  CommentMode,
+  CommentThread,
+} from 'vscode'
 import { EXT_REVIEW_ID } from '../meta'
 import { getAvatarFromEmail } from '../utils/shared'
 import { ExtensionModule } from '~/modules'
@@ -7,13 +21,12 @@ import i18n from '~/i18n'
 import { Config, Global, ReviewComment, KeyDetector, ActionSource, Telemetry, TelemetryKey } from '~/core'
 import { Log } from '~/utils'
 
-function userToAuthorInfo(user?: {name?: string; email?: string}): CommentAuthorInformation {
+function userToAuthorInfo(user?: { name?: string; email?: string }): CommentAuthorInformation {
   if (!user) {
     return {
       name: i18n.t('review.unknown_user'),
     }
-  }
-  else {
+  } else {
     return {
       name: user.name || i18n.t('review.unknown_user'),
       iconPath: Uri.parse(getAvatarFromEmail(user.email)),
@@ -30,13 +43,12 @@ class ReviewReply implements Comment {
     public author: CommentAuthorInformation,
     public thread: CommentThread,
     public contextValue?: string,
-  ) {
-  }
+  ) {}
 }
 
 class ReviewCommentProvider implements Disposable {
   private _disposables: Disposable[] = []
-  private _cache: Record<string, [Range, {locale: string; keypath: string}][]> = {}
+  private _cache: Record<string, [Range, { locale: string; keypath: string }][]> = {}
   private _threads: Record<string, CommentThread[]> = {}
 
   constructor(public readonly controller: CommentController) {
@@ -63,23 +75,23 @@ class ReviewCommentProvider implements Disposable {
   }
 
   typeIcon = {
-    'approve': '✅ ',
-    'request_change': '❌ ',
-    'comment': '',
+    approve: '✅ ',
+    request_change: '❌ ',
+    comment: '',
     '': '',
   }
 
   typeComment = {
-    'approve': `*${i18n.t('review.placeholder.approve')}*`,
-    'request_change': `*${i18n.t('review.placeholder.request_change')}*`,
-    'comment': `*${i18n.t('review.placeholder.comment')}*`,
+    approve: `*${i18n.t('review.placeholder.approve')}*`,
+    request_change: `*${i18n.t('review.placeholder.request_change')}*`,
+    comment: `*${i18n.t('review.placeholder.comment')}*`,
     '': '',
   }
 
   commentsToReply(comments: ReviewComment[], thread: CommentThread) {
     return comments
       .filter(c => !c.resolved)
-      .map((c) => {
+      .map(c => {
         const icon = this.typeIcon[c.type || ''] || ''
         const comment = c.comment || this.typeComment[c.type || ''] || this.typeComment.comment
         return new ReviewReply(
@@ -93,12 +105,12 @@ class ReviewCommentProvider implements Disposable {
       })
   }
 
-  async createComment(reply: CommentReply, type: 'comment'|'approve'|'request_change') {
+  async createComment(reply: CommentReply, type: 'comment' | 'approve' | 'request_change') {
     const thread = reply.thread
     const info = this.getThreadInfo(thread)
 
     if (!info) {
-      Log.error(`Invalid range ${thread.range}`)
+      Log.error(`Invalid range ${thread.range?.start.line}`)
       return
     }
 
@@ -121,7 +133,7 @@ class ReviewCommentProvider implements Disposable {
     const info = this.getThreadInfo(thread)
 
     if (!info) {
-      Log.error(`Invalid range ${thread.range}`)
+      Log.error(`Invalid range ${thread.range?.start.line}`)
       return
     }
 
@@ -132,9 +144,8 @@ class ReviewCommentProvider implements Disposable {
   }
 
   getThreadInfo(thread: CommentThread) {
-    const info = this._cache[thread.uri.fsPath]?.find(([r]) => r.start.line === thread.range.start.line)
-    if (info)
-      return info[1]
+    const info = this._cache[thread.uri.fsPath]?.find(([r]) => r.start.line === thread.range?.start.line)
+    if (info) return info[1]
   }
 
   get parsers() {
@@ -149,12 +160,10 @@ class ReviewCommentProvider implements Disposable {
       delete this._threads[filepath]
     }
 
-    if (!Config.reviewEnabled || !Config.reviewGutters)
-      return []
+    if (!Config.reviewEnabled || !Config.reviewGutters) return []
 
     const usages = KeyDetector.getUsages(document)
-    if (!usages)
-      return []
+    if (!usages) return []
 
     const { keys, locale, namespace, type } = usages
 
@@ -165,10 +174,7 @@ class ReviewCommentProvider implements Disposable {
     const threads = this._threads[filepath]
 
     const ranges: Range[] = keys.flatMap(({ start, key, end }) => {
-      const range = new Range(
-        document.positionAt(start),
-        document.positionAt(end),
-      )
+      const range = new Range(document.positionAt(start), document.positionAt(end))
       const keypath = namespace ? `${namespace}.${key}` : key
       cache.push([range, { keypath, locale }])
 
@@ -179,8 +185,7 @@ class ReviewCommentProvider implements Disposable {
         threads.push(thread)
       }
 
-      if (type === 'code' && !comments.length)
-        return []
+      if (type === 'code' && !comments.length) return []
 
       return [range]
     })

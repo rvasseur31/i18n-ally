@@ -10,13 +10,9 @@ import { Log } from '~/utils'
 export class ConfigLocalesGuide {
   static async prompt() {
     const okText = i18n.t('prompt.config_locales_button')
-    const result = await window.showInformationMessage(
-      i18n.t('prompt.config_locales_info'),
-      okText,
-    )
+    const result = await window.showInformationMessage(i18n.t('prompt.config_locales_info'), okText)
 
-    if (result !== okText)
-      return
+    if (result !== okText) return
 
     this.config()
   }
@@ -30,27 +26,23 @@ export class ConfigLocalesGuide {
 
   static async pickDir(): Promise<string[]> {
     const rootPath = workspace.workspaceFolders?.[0]?.uri.path
-    if (!rootPath)
-      return []
+    if (!rootPath) return []
 
     const dirs = await window.showOpenDialog({
       defaultUri: Uri.file(rootPath),
       canSelectFolders: true,
     })
 
-    if (!dirs)
-      return []
+    if (!dirs) return []
 
     return dirs
-      .map((item) => {
-        if (process.platform === 'win32') // path on windows will starts with '/'
+      .map(item => {
+        if (process.platform === 'win32')
+          // path on windows will starts with '/'
           return item.path.slice(1)
         return item.path
       })
-      .map(pa => path
-        .relative(rootPath, pa)
-        .replace(/\\/g, '/'),
-      )
+      .map(pa => path.relative(rootPath, pa).replace(/\\/g, '/'))
   }
 
   static async success() {
@@ -59,8 +51,7 @@ export class ConfigLocalesGuide {
 
   static async autoSet() {
     const rootPath = workspace.rootPath
-    if (!rootPath)
-      return
+    if (!rootPath) return
 
     const pattern = ['**/**/(locales|locale|i18n|lang|langs|language|languages|messages)']
     const result: string[] = await fg(pattern, {
@@ -84,22 +75,17 @@ export class ConfigLocalesGuide {
     if (result.length) {
       Config.updateLocalesPaths(result)
 
-      await window.showInformationMessage(
-        i18n.t('prompt.config_locales_auto_success', result.join(';').toString()),
-      )
-    }
-    else {
+      await window.showInformationMessage(i18n.t('prompt.config_locales_auto_success', result.join(';').toString()))
+    } else {
       Log.warn(i18n.t('prompt.locales_dir_not_found'), false)
       this.prompt()
     }
   }
 }
 
-export default <ExtensionModule> function() {
+export default (<ExtensionModule>function () {
   return [
-    commands.registerCommand(Commands.config_locales_auto,
-      () => ConfigLocalesGuide.autoSet()),
-    commands.registerCommand(Commands.config_locales,
-      () => ConfigLocalesGuide.config()),
+    commands.registerCommand(Commands.config_locales_auto, () => ConfigLocalesGuide.autoSet()),
+    commands.registerCommand(Commands.config_locales, () => ConfigLocalesGuide.config()),
   ]
-}
+})

@@ -33,7 +33,7 @@ export default class OpenAITranslate extends TranslateEngine {
       }),
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
+        Authorization: `Bearer ${apiKey}`,
       },
     })
 

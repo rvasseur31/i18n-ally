@@ -17,19 +17,13 @@ export function detect(
   userOptions: ExtractionBabelOptions = {},
   customCallExpression?: (path: any, recordIgnore: (path: any) => void) => void,
 ) {
-  const {
-    ignoredJSXAttributes,
-  } = Object.assign({}, defaultOptions, userOptions)
+  const { ignoredJSXAttributes } = Object.assign({}, defaultOptions, userOptions)
 
   const detections: DetectionResult[] = []
 
   const ast = parse(input, {
     sourceType: 'unambiguous',
-    plugins: [
-      'jsx',
-      'typescript',
-      'decorators-legacy',
-    ],
+    plugins: ['jsx', 'typescript', 'decorators-legacy'],
   })
 
   const ignores: [number, number][] = []
@@ -38,11 +32,9 @@ export function detect(
     const fullStart = path?.node?.start
     const fullEnd = path?.node?.end
 
-    if (!fullStart || !fullEnd)
-      return
+    if (!fullStart || !fullEnd) return
 
-    if (isIgnored(fullStart, fullEnd))
-      return
+    if (isIgnored(fullStart, fullEnd)) return
 
     const quoted = type !== 'jsx-text'
     const fullText = input.slice(fullStart, fullEnd)
@@ -51,10 +43,8 @@ export function detect(
     // const end = quoted ? fullEnd - 1 : fullEnd
     const text = quoted ? fullText.slice(1, -1) : fullText
 
-    if (type === 'js-template' && !shouldExtract(text, dynamicRules))
-      return
-    else if (!shouldExtract(text, rules))
-      return
+    if (type === 'js-template' && !shouldExtract(text, dynamicRules)) return
+    else if (!shouldExtract(text, rules)) return
 
     detections.push({
       fullEnd,
@@ -71,8 +61,7 @@ export function detect(
     const fullStart = path?.node?.start ?? path?.start
     const fullEnd = path?.node?.end ?? path?.end
 
-    if (!fullStart || !fullEnd)
-      return
+    if (!fullStart || !fullEnd) return
 
     ignores.push([fullStart, fullEnd])
   }
@@ -94,8 +83,7 @@ export function detect(
     // scan for jsx attributes
     JSXElement(path: any) {
       path?.node?.openingElement?.attributes?.forEach((i: any) => {
-        if (ignoredJSXAttributes.includes(i?.name?.name))
-          recordIgnore(i)
+        if (ignoredJSXAttributes.includes(i?.name?.name)) recordIgnore(i)
       })
     },
     // ignore `console.xxx`
@@ -103,8 +91,7 @@ export function detect(
       if (customCallExpression) customCallExpression(path, recordIgnore)
       const callee = path.get('callee')
       if (!callee.isMemberExpression()) return
-      if (isGlobalConsoleId(callee.get('object')))
-        recordIgnore(path)
+      if (isGlobalConsoleId(callee.get('object'))) recordIgnore(path)
     },
   })
 
@@ -113,9 +100,5 @@ export function detect(
 
 function isGlobalConsoleId(id: any) {
   const name = 'console'
-  return (
-    id.isIdentifier({ name })
-    && !id.scope.getBinding(name)
-    && id.scope.hasGlobal(name)
-  )
+  return id.isIdentifier({ name }) && !id.scope.getBinding(name) && id.scope.hasGlobal(name)
 }
