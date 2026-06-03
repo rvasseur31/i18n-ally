@@ -18,7 +18,7 @@ import { getAvatarFromEmail } from '../utils/shared'
 import { ExtensionModule } from '~/modules'
 import { Commands } from '~/commands'
 import i18n from '~/i18n'
-import { Config, Global, ReviewComment, KeyDetector, ActionSource, Telemetry, TelemetryKey } from '~/core'
+import { Config, Global, ReviewComment, KeyDetector } from '~/core'
 import { Log } from '~/utils'
 
 function userToAuthorInfo(user?: { name?: string; email?: string }): CommentAuthorInformation {
@@ -114,7 +114,6 @@ class ReviewCommentProvider implements Disposable {
       return
     }
 
-    Telemetry.track(TelemetryKey.ReviewAddComment, { source: ActionSource.Review })
     await Global.reviews.addComment(info.keypath, info.locale, {
       type,
       comment: reply.text,
@@ -137,7 +136,6 @@ class ReviewCommentProvider implements Disposable {
       return
     }
 
-    Telemetry.track(TelemetryKey.ReviewResolveComment, { source: ActionSource.Review })
     await Global.reviews.resolveComment(info.keypath, info.locale, reply.id)
 
     this.updateThread(thread, info.keypath, info.locale)

@@ -3,12 +3,11 @@ import { workspace, window, Selection, TextEditorRevealType, commands } from 'vs
 import { CommandOptions, getNodeOrRecord, getRecordFromNode } from './common'
 import { LocaleTreeItem, ProgressRootItem } from '~/views'
 import { Log, NodeHelper } from '~/utils'
-import { Config, Global, CurrentFile, Telemetry, TelemetryKey, ActionSource } from '~/core'
+import { Config, Global, CurrentFile } from '~/core'
 import i18n from '~/i18n'
 
 export async function GoToKey(item?: LocaleTreeItem | CommandOptions | ProgressRootItem) {
   if (item instanceof ProgressRootItem) {
-    Telemetry.track(TelemetryKey.GoToKey, { source: ActionSource.TreeView })
     const locale = item.locale
     const files = CurrentFile.loader.files.filter(f => f.locale === locale).map(f => f.filepath)
     let filepath: string | undefined
@@ -26,8 +25,6 @@ export async function GoToKey(item?: LocaleTreeItem | CommandOptions | ProgressR
     const document = await workspace.openTextDocument(filepath)
     await window.showTextDocument(document)
   } else {
-    Telemetry.track(TelemetryKey.GoToKey, { source: Telemetry.getActionSource(item) })
-
     const node = getNodeOrRecord(item)
     if (!node) return
 
@@ -36,8 +33,6 @@ export async function GoToKey(item?: LocaleTreeItem | CommandOptions | ProgressR
     if (node.type === 'node') {
       locale = await window.showQuickPick(Global.visibleLocales, { placeHolder: i18n.t('prompt.choice_locale') })
     }
-
-    Telemetry.track(TelemetryKey.GoToKey)
 
     if (!locale) return
 

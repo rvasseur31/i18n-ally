@@ -9,7 +9,6 @@ import { ParsedFile, PendingWrite, DirStructure, TargetPickingStrategy } from '.
 import { LocaleTree } from '../Nodes'
 import { AllyError, ErrorType } from '../Errors'
 import { Analyst, Global, Config } from '..'
-import { Telemetry, TelemetryKey } from '../Telemetry'
 import { Loader } from './Loader'
 import {
   uniq,
@@ -23,6 +22,7 @@ import {
   getCache,
   setCache,
   getLocaleCompare,
+  KeyedSerializer,
 } from '~/utils'
 import i18n from '~/i18n'
 
@@ -33,6 +33,7 @@ export class LocaleLoader extends Loader {
   private _path_matchers: { regex: RegExp; matcher: string }[] = []
   private _dir_structure: DirStructure = 'file'
   private _locale_dirs: string[] = []
+  private _writeSerializer = new KeyedSerializer()
 
   constructor(public readonly rootpath: string) {
     super(`[LOCALE]${rootpath}`)
@@ -284,46 +285,49 @@ export class LocaleLoader extends Loader {
 
     try {
       for (const [filepath, pendings] of Object.entries(distributed)) {
-        const ext = path.extname(filepath)
-        const parser = Global.getMatchedParser(ext)
-        if (!parser) throw new AllyError(ErrorType.unsupported_file_type, undefined, ext)
-        if (parser.readonly || Config.readonly) throw new AllyError(ErrorType.write_in_readonly_mode)
+        // serialize read-modify-write per file so concurrent writes to the same file don't lose updates
+        await this._writeSerializer.run(filepath, async () => {
+          const ext = path.extname(filepath)
+          const parser = Global.getMatchedParser(ext)
+          if (!parser) throw new AllyError(ErrorType.unsupported_file_type, undefined, ext)
+          if (parser.readonly || Config.readonly) throw new AllyError(ErrorType.write_in_readonly_mode)
 
-        Log.info(`💾 Writing ${filepath}`)
+          Log.info(`💾 Writing ${filepath}`)
 
-        let original: any = {}
-        if (fs.existsSync(filepath)) {
-          original = await parser.load(filepath)
-          original = this.preprocessData(original, {
-            locale: pendings[0].locale,
-            targetFile: filepath,
-          })
-        }
-
-        let modified = original
-        for (const pending of pendings) {
-          let keypath = pending.keypath
-
-          if (Global.namespaceEnabled) {
-            const node = this.getNodeByKey(keypath)
-            keypath = NodeHelper.getPathWithoutNamespace(keypath, node, pending.namespace)
+          let original: any = {}
+          if (fs.existsSync(filepath)) {
+            original = await parser.load(filepath)
+            original = this.preprocessData(original, {
+              locale: pendings[0].locale,
+              targetFile: filepath,
+            })
           }
 
-          modified = applyPendingToObject(modified, keypath, pending.value, await Global.requestKeyStyle())
-        }
+          let modified = original
+          for (const pending of pendings) {
+            let keypath = pending.keypath
 
-        const locale = pendings[0].locale
+            if (Global.namespaceEnabled) {
+              const node = this.getNodeByKey(keypath)
+              keypath = NodeHelper.getPathWithoutNamespace(keypath, node, pending.namespace)
+            }
 
-        const processingContext = { locale, targetFile: filepath }
-        const processed = this.deprocessData(modified, processingContext)
+            modified = applyPendingToObject(modified, keypath, pending.value, await Global.requestKeyStyle())
+          }
 
-        const compare = Config.sortCompare === 'locale' ? getLocaleCompare(Config.sortLocale, locale) : undefined
-        await parser.save(filepath, processed, Config.sortKeys, compare)
+          const locale = pendings[0].locale
 
-        if (this._files[filepath]) {
-          this._files[filepath].value = modified
-          this._files[filepath].mtime = this.getMtime(filepath)
-        }
+          const processingContext = { locale, targetFile: filepath }
+          const processed = this.deprocessData(modified, processingContext)
+
+          const compare = Config.sortCompare === 'locale' ? getLocaleCompare(Config.sortLocale, locale) : undefined
+          await parser.save(filepath, processed, Config.sortKeys, compare)
+
+          if (this._files[filepath]) {
+            this._files[filepath].value = modified
+            this._files[filepath].mtime = this.getMtime(filepath)
+          }
+        })
       }
     } catch (e) {
       this.update()
@@ -430,6 +434,12 @@ export class LocaleLoader extends Loader {
       if (!locale) return
 
       const mtime = this.getMtime(filepath)
+
+      // skip re-parse if the file is already loaded with the same mtime
+      if (this._files[filepath] && this._files[filepath].mtime === mtime) {
+        Log.info(`🔄 Skipped re-parsing "${relativePath}" (same mtime)`, 1)
+        return false
+      }
 
       Log.info(`📑 Loading (${locale}) ${relativePath} [${mtime}]`, 1)
 
@@ -615,18 +625,37 @@ export class LocaleLoader extends Loader {
     return true
   }
 
-  private async loadAll(watch = true) {
-    for (const pathname of this._locale_dirs) {
-      try {
-        Log.info(`\n📂 Loading locales under ${pathname}`)
-        await this.loadDirectory(pathname)
-        if (watch) this.watchOn(pathname)
-        if (!this.files.length) window.showWarningMessage(i18n.t('prompt.no_locale_loaded'))
+  private _loading = false
+  private _reloadRequested = false
 
-        if (this.files.length && this.keys.length) Telemetry.track(TelemetryKey.Activated)
-      } catch (e) {
-        Log.error(e)
+  private async loadAll(watch = true) {
+    // reentrancy guard: lodash.throttle doesn't serialize async fns, so a second
+    // call during an in-flight loadAll would interleave _files mutations. Instead,
+    // remember a reload is requested and rerun once the current pass finishes.
+    if (this._loading) {
+      this._reloadRequested = true
+      return
+    }
+
+    this._loading = true
+    try {
+      for (const pathname of this._locale_dirs) {
+        try {
+          Log.info(`\n📂 Loading locales under ${pathname}`)
+          await this.loadDirectory(pathname)
+          if (watch) this.watchOn(pathname)
+          if (!this.files.length) window.showWarningMessage(i18n.t('prompt.no_locale_loaded'))
+        } catch (e) {
+          Log.error(e)
+        }
       }
+    } finally {
+      this._loading = false
+    }
+
+    if (this._reloadRequested) {
+      this._reloadRequested = false
+      await this.loadAll(watch)
     }
   }
 }

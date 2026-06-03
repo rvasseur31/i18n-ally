@@ -16,23 +16,23 @@ const m: ExtensionModule = ctx => {
   const currentFileTreeProvider = new CurrentFileLocalesTreeProvider(ctx)
 
   // Explorer tab
-  window.createTreeView(ViewIds.file_in_explorer, {
+  const fileInExplorerView = window.createTreeView(ViewIds.file_in_explorer, {
     treeDataProvider: currentFileTreeProvider,
     showCollapseAll: true,
   })
 
   // Extension tab
-  window.createTreeView(ViewIds.file, {
+  const fileView = window.createTreeView(ViewIds.file, {
     treeDataProvider: currentFileTreeProvider,
     showCollapseAll: true,
   })
 
-  window.createTreeView(ViewIds.progress, {
+  const progressView = window.createTreeView(ViewIds.progress, {
     treeDataProvider: new ProgressProvider(ctx),
     showCollapseAll: true,
   })
 
-  window.createTreeView(ViewIds.tree, {
+  const treeView = window.createTreeView(ViewIds.tree, {
     treeDataProvider: new LocalesTreeProvider(ctx),
     showCollapseAll: true,
   })
@@ -43,11 +43,11 @@ const m: ExtensionModule = ctx => {
     showCollapseAll: true,
   })
 
-  window.createTreeView(ViewIds.feedback, {
+  const feedbackView = window.createTreeView(ViewIds.feedback, {
     treeDataProvider: new HelpFeedbackProvider(ctx),
   })
 
-  return []
+  return [fileInExplorerView, fileView, progressView, treeView, usageReportProvider.view, feedbackView]
 }
 
 export default m

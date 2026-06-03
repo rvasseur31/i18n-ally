@@ -10,7 +10,8 @@ import {
   workspace,
   Uri,
 } from 'vscode'
-import { EXT_NAMESPACE } from '../meta'
+import throttle from 'lodash.throttle'
+import { EXT_NAMESPACE, THROTTLE_DELAY } from '../meta'
 import { ExtensionModule } from '~/modules'
 import { Global, KeyDetector, Config, Loader, CurrentFile, DetectionResult } from '~/core'
 import i18n from '~/i18n'
@@ -100,12 +101,17 @@ export class ProblemProvider {
 const m: ExtensionModule = (ctx: ExtensionContext) => {
   const provider = new ProblemProvider(ctx)
 
+  const throttledUpdate = throttle((document?: TextDocument) => provider.update(document), THROTTLE_DELAY)
+
   provider.update()
 
   return [
-    CurrentFile.onHardStringDetected(() => provider.update()),
-    CurrentFile.loader.onDidChange(() => provider.update()),
-    workspace.onDidChangeTextDocument(doc => provider.update(doc.document)),
+    CurrentFile.onHardStringDetected(() => throttledUpdate()),
+    CurrentFile.loader.onDidChange(() => throttledUpdate()),
+    workspace.onDidChangeTextDocument(doc => {
+      if (doc.document !== window.activeTextEditor?.document) return
+      throttledUpdate(doc.document)
+    }),
     workspace.onDidCloseTextDocument(e => provider.clearUri(e.uri)),
   ]
 }

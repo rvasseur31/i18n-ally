@@ -41,11 +41,9 @@
     "test:update": "cross-env CHAI_JEST_SNAPSHOT_UPDATE_ALL=true bun test:unit"
   },
   "dependencies": {
-    "@amplitude/analytics-node": "^1.5.29",
     "@babel/parser": "^7.15.3",
     "@babel/traverse": "^7.23.2",
     "bcp-47-normalize": "^2.0.1",
-    "esm": "^3.2.25",
     "fast-glob": "^3.2.7",
     "fuse.js": "^7.1.0",
     "glob-gitignore": "^1.0.14",
@@ -816,7 +814,9 @@
               "lingui",
               "jekyll",
               "next-intl",
-              "next-international"
+              "next-international",
+              "polyglot",
+              "php-joomla"
             ]
           },
           "description": "%config.enabled_frameworks%"
@@ -834,8 +834,7 @@
               "ini",
               "po",
               "php",
-              "properties",
-              "ftl"
+              "properties"
             ]
           },
           "description": "%config.enabled_parsers%"

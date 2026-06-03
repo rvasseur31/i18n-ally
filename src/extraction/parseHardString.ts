@@ -6,10 +6,8 @@ const QUOTE_PLACEHOLDER = '\uE000'
 export function stringConcatenationToTemplate(text: string) {
   let result = text.trim()
   // Ensure the string starts and ends with quotes for consistent processing
-  if (!result.match(/^['"`]/))
-    result = `''+${result}`
-  if (!result.match(/['"`]$/))
-    result = `${result}+''`
+  if (!result.match(/^['"`]/)) result = `''+${result}`
+  if (!result.match(/['"`]$/)) result = `${result}+''`
 
   // Replace all unescaped quotes with a placeholder
   // We run this twice to handle consecutive quotes (e.g. '') where the first pass consumes the preceding character

@@ -1,3 +1,4 @@
+import fs from 'fs'
 import { workspace } from 'vscode'
 import { PackageJSONParser, PubspecYAMLParser, ComposerJSONParser, GemfileParser } from '../packagesParsers'
 import { Framework, PackageFileType } from './base'
@@ -75,16 +76,40 @@ export function getFramework(id: string): Framework | undefined {
   return frameworks.find(f => f.id === id)
 }
 
+const PackageDependenciesFiles = ['package.json', 'pubspec.yaml', 'composer.json', 'Gemfile']
+let _packageDependenciesCache: { rootpath: string; signature: string; result: PackageDependencies } | undefined
+
+function getPackageFilesSignature(projectUrl: string) {
+  return PackageDependenciesFiles.map(filename => {
+    try {
+      return fs.statSync(`${projectUrl}/${filename}`).mtimeMs
+    } catch {
+      return 0
+    }
+  }).join(',')
+}
+
 export function getPackageDependencies(projectUrl: string): PackageDependencies {
   const result: PackageDependencies = {}
 
   if (!projectUrl || !workspace.workspaceFolders) return result
+
+  // cache by rootpath, invalidated by comparing the package files' mtimes
+  const signature = getPackageFilesSignature(projectUrl)
+  if (
+    _packageDependenciesCache &&
+    _packageDependenciesCache.rootpath === projectUrl &&
+    _packageDependenciesCache.signature === signature
+  )
+    return _packageDependenciesCache.result
 
   result.none = []
   result.packageJSON = PackageJSONParser.load(projectUrl)
   result.pubspecYAML = PubspecYAMLParser.load(projectUrl)
   result.composerJSON = ComposerJSONParser.load(projectUrl)
   result.gemfile = GemfileParser.load(projectUrl)
+
+  _packageDependenciesCache = { rootpath: projectUrl, signature, result }
 
   return result
 }

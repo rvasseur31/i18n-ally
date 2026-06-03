@@ -5,7 +5,7 @@ import { Commands } from './commands'
 import { CommandOptions } from './manipulations/common'
 import { ExtensionModule } from '~/modules'
 import i18n from '~/i18n'
-import { ActionSource, Global, Telemetry, TelemetryKey } from '~/core'
+import { Global } from '~/core'
 import { promptKeys } from '~/utils'
 
 export default (<ExtensionModule>function (ctx) {
@@ -20,8 +20,6 @@ export default (<ExtensionModule>function (ctx) {
   }
 
   const openEditor = async (item?: string | LocaleTreeItem | CommandOptions) => {
-    let actionSource = ActionSource.None
-
     let key: string | undefined
     let locale: string | undefined
     let mode: EditorPanel['mode'] = 'standalone'
@@ -29,14 +27,12 @@ export default (<ExtensionModule>function (ctx) {
 
     // from command pattele
     if (!item) {
-      actionSource = ActionSource.CommandPattele
       if (supportedFileOpen()) mode = 'currentFile'
 
       key = await promptKeys(i18n.t('prompt.choice_key_to_open'))
     }
     // from tree view
     else if (item instanceof LocaleTreeItem) {
-      actionSource = ActionSource.TreeView
       key = item.node.keypath
       locale = item.node.type === 'record' ? item.node.locale : undefined
     }
@@ -46,7 +42,6 @@ export default (<ExtensionModule>function (ctx) {
     }
     // from hover
     else if (item.keypath) {
-      actionSource = ActionSource.Hover
       key = item.keypath
       locale = item.locale
       if (item.keyIndex != null) {
@@ -56,8 +51,6 @@ export default (<ExtensionModule>function (ctx) {
     }
 
     if (!key) return
-
-    if (actionSource !== ActionSource.None) Telemetry.track(TelemetryKey.EditorOpen, { source: actionSource })
 
     const panel = EditorPanel.createOrShow(ctx, mode === 'currentFile' ? ViewColumn.Two : undefined)
     panel.mode = mode

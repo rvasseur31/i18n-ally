@@ -1,6 +1,7 @@
 import { createHash } from 'crypto'
 import qs from 'qs'
 import TranslateEngine, { TranslateOptions, TranslateResult } from './base'
+import { fetchWithTimeout } from './fetch'
 import { Config } from '~/core'
 
 interface BaiduSignOptions {
@@ -34,9 +35,13 @@ export default class BaiduTranslate extends TranslateEngine {
       sign,
     }
 
-    const response = await fetch(`${this.apiRoot}/api/trans/vip/translate?${qs.stringify(form)}`, {
-      method: 'GET',
-    })
+    const response = await fetchWithTimeout(
+      `${this.apiRoot}/api/trans/vip/translate?${qs.stringify(form)}`,
+      {
+        method: 'GET',
+      },
+      this.config.timeout,
+    )
 
     const data = await response.json()
 

@@ -3,6 +3,7 @@ import fs from 'fs'
 import { workspace, FileSystemWatcher, TextDocument } from 'vscode'
 import YAML from 'js-yaml'
 import { Framework, ScopeRange } from './base'
+import i18n from '~/i18n'
 import { Global } from '~/core'
 import { LanguageId, File, Log } from '~/utils'
 
@@ -85,7 +86,15 @@ class CustomFramework extends Framework {
 
     const ranges: ScopeRange[] = []
     const text = document.getText()
-    const reg = new RegExp(this.data.scopeRangeRegex, 'g')
+
+    let reg: RegExp
+    try {
+      reg = new RegExp(this.data.scopeRangeRegex, 'g')
+    } catch (e) {
+      Log.error(i18n.t('prompt.error_on_parse_custom_regex', this.data.scopeRangeRegex), true)
+      Log.error(e, false)
+      return undefined
+    }
 
     for (const match of text.matchAll(reg)) {
       if (match?.index == null) continue

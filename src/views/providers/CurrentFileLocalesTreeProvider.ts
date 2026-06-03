@@ -19,8 +19,8 @@ export class CurrentFileLocalesTreeProvider implements TreeDataProvider<BaseTree
   constructor(public ctx: ExtensionContext) {
     this.loadCurrentDocument()
 
-    CurrentFile.onInvalidate(() => this.loadCurrentDocument())
-    CurrentFile.onHardStringDetected(() => this.refresh())
+    CurrentFile.onInvalidate(() => this.loadCurrentDocument(), null, ctx.subscriptions)
+    CurrentFile.onHardStringDetected(() => this.refresh(), null, ctx.subscriptions)
   }
 
   getTreeItem(element: BaseTreeItem): TreeItem {

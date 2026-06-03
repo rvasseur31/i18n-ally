@@ -1,4 +1,5 @@
 import TranslateEngine, { TranslateOptions, TranslateResult } from './base'
+import { fetchWithTimeout } from './fetch'
 import { Config } from '~/core'
 
 export default class LibreTranslate extends TranslateEngine {
@@ -10,18 +11,22 @@ export default class LibreTranslate extends TranslateEngine {
     let apiRoot = this.apiRoot
     if (Config.libreTranslateApiRoot) apiRoot = Config.libreTranslateApiRoot
 
-    const response = await fetch(`${apiRoot}/translate`, {
-      method: 'POST',
-      body: JSON.stringify({
-        q: options.text,
-        source: from,
-        target: to,
-        format: 'html',
-      }),
-      headers: {
-        'Content-Type': 'application/json',
+    const response = await fetchWithTimeout(
+      `${apiRoot}/translate`,
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          q: options.text,
+          source: from,
+          target: to,
+          format: 'html',
+        }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
       },
-    })
+      this.config.timeout,
+    )
 
     const data = await response.json()
 
@@ -36,9 +41,11 @@ export default class LibreTranslate extends TranslateEngine {
       to,
       from: response.src,
       response,
-      result: [response.translatedText],
       linkToResult: '',
     }
+
+    if (response?.translatedText != null) r.result = [response.translatedText]
+    else r.error = new Error(response?.error || 'No result')
 
     return r
   }

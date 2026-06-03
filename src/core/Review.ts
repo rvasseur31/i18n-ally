@@ -85,7 +85,7 @@ export class Reviews {
         value: translation.text,
       })
     }
-    CurrentFile.loader.write(pendings)
+    await CurrentFile.loader.write(pendings)
 
     for (const { keypath, locale } of candidates) await this.discardTranslationCandidate(keypath, locale, false)
 

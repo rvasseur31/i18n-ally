@@ -15,11 +15,10 @@ export class ProgressProvider implements TreeDataProvider<BaseTreeItem> {
   constructor(private ctx: ExtensionContext) {
     const throttledRefresh = throttle(() => this.refresh(), THROTTLE_DELAY)
     EditorPanel.onDidChange(throttledRefresh)
-    Global.onDidChangeLoader(() => {
-      throttledRefresh()
-      Global.loader.onDidChange(throttledRefresh)
-      CurrentFile.loader.onDidChange(throttledRefresh)
-    })
+    // CurrentFile.loader is a session-long singleton whose composed loader propagates child loader changes,
+    // so subscribe once instead of re-subscribing on every onDidChangeLoader emission
+    CurrentFile.loader.onDidChange(throttledRefresh)
+    Global.onDidChangeLoader(throttledRefresh)
     Global.onDidChangeEnabled(throttledRefresh)
   }
 

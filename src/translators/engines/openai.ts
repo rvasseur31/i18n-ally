@@ -1,4 +1,5 @@
 import TranslateEngine, { TranslateOptions, TranslateResult } from './base'
+import { fetchWithTimeout } from './fetch'
 import { Config } from '~/core'
 
 export default class OpenAITranslate extends TranslateEngine {
@@ -11,31 +12,35 @@ export default class OpenAITranslate extends TranslateEngine {
     if (Config.openaiApiRoot) apiRoot = Config.openaiApiRoot.replace(/\/$/, '')
     const model = Config.openaiApiModel
 
-    const response = await fetch(`${apiRoot}/v1/chat/completions`, {
-      method: 'POST',
-      body: JSON.stringify({
-        model,
-        temperature: 0,
-        max_tokens: 1000,
-        top_p: 1,
-        frequency_penalty: 1,
-        presence_penalty: 1,
-        messages: [
-          {
-            role: 'system',
-            content: this.systemPrompt,
-          },
-          {
-            role: 'user',
-            content: this.generateUserPrompts(options),
-          },
-        ],
-      }),
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
+    const response = await fetchWithTimeout(
+      `${apiRoot}/v1/chat/completions`,
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          model,
+          temperature: 0,
+          max_tokens: 1000,
+          top_p: 1,
+          frequency_penalty: 1,
+          presence_penalty: 1,
+          messages: [
+            {
+              role: 'system',
+              content: this.systemPrompt,
+            },
+            {
+              role: 'user',
+              content: this.generateUserPrompts(options),
+            },
+          ],
+        }),
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey}`,
+        },
       },
-    })
+      this.config.timeout,
+    )
 
     const data = await response.json()
 
@@ -45,7 +50,7 @@ export default class OpenAITranslate extends TranslateEngine {
   transform(response: any, options: TranslateOptions): TranslateResult {
     const { text, from = 'auto', to = 'auto' } = options
 
-    const translatedText = response.choices[0].message.content?.trim()
+    const translatedText = response.choices?.[0]?.message?.content?.trim()
 
     const r: TranslateResult = {
       text,
@@ -55,6 +60,8 @@ export default class OpenAITranslate extends TranslateEngine {
       result: translatedText ? [translatedText] : undefined,
       linkToResult: '',
     }
+
+    if (!r.result) r.error = new Error(response?.error?.message || 'No result')
 
     return r
   }

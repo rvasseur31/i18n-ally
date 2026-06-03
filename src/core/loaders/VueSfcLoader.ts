@@ -6,7 +6,7 @@ import { Global } from '../Global'
 import { Config } from '../Config'
 import { Loader } from './Loader'
 import { parseVueSfc, writeVueSfc, SFCI18nBlock, MetaLocaleMessage } from '~/parsers/VueSfcParser'
-import { Log, applyPendingToObject, File, unflatten } from '~/utils'
+import { Log, applyPendingToObject, File, unflatten, KeyedSerializer } from '~/utils'
 
 export class VueSfcLoader extends Loader {
   constructor(public readonly uri: Uri) {
@@ -17,6 +17,7 @@ export class VueSfcLoader extends Loader {
 
   _parsedSections: SFCI18nBlock[] = []
   _meta: MetaLocaleMessage | undefined
+  private _serializer = new KeyedSerializer()
 
   get filepath() {
     return this.uri.fsPath
@@ -26,7 +27,12 @@ export class VueSfcLoader extends Loader {
     return []
   }
 
+  // serialize write/load so a load triggered by typing can't reassign _parsedSections mid-write
   async load() {
+    return this._serializer.run('sfc', () => this._load())
+  }
+
+  private async _load() {
     const filepath = this.filepath
     Log.info(`📑 Loading sfc ${filepath}`)
     const doc = await workspace.openTextDocument(this.uri)
@@ -77,10 +83,17 @@ export class VueSfcLoader extends Loader {
   }
 
   async write(pendings: PendingWrite | PendingWrite[]) {
+    return this._serializer.run('sfc', () => this._write(pendings))
+  }
+
+  private async _write(pendings: PendingWrite | PendingWrite[]) {
     if (!Array.isArray(pendings)) pendings = [pendings]
     pendings = pendings.filter(i => i)
 
     if (!this._meta) return
+
+    // capture local references so an await-interleaved load() can't swap them under us
+    const sections = this._meta.components[this.filepath]
 
     for (const pending of pendings) {
       const record = this.getRecordByKey(pending.keypath, pending.locale, true)
@@ -88,7 +101,7 @@ export class VueSfcLoader extends Loader {
 
       const sectionIndex = record.meta ? record.meta.VueSfcSectionIndex || 0 : 0
 
-      const section = this._meta.components[this.filepath][sectionIndex]
+      const section = sections[sectionIndex]
 
       const locale = record?.meta?.VueSfcLocale || pending.locale
 
@@ -102,7 +115,7 @@ export class VueSfcLoader extends Loader {
 
     const doc = await workspace.openTextDocument(this.uri)
     const content = doc.getText()
-    const newContent = writeVueSfc(content, this.filepath, this._parsedSections)
+    const newContent = writeVueSfc(content, this.filepath, sections)
 
     if (doc.isDirty) {
       const edit = new WorkspaceEdit()
@@ -113,7 +126,7 @@ export class VueSfcLoader extends Loader {
       await File.write(this.filepath, newContent)
     }
 
-    await this.load()
+    await this._load()
   }
 
   canHandleWrites(pending: PendingWrite) {

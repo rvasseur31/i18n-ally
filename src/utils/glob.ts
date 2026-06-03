@@ -23,6 +23,7 @@ export async function gitignoredGlob(globStr: string, dir: string) {
   const files = (await glob(globStr, {
     cwd: dir,
     ignore,
+    nodir: true,
   })) as string[]
 
   return files.map(f => resolve(dir, f))

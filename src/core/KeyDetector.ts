@@ -4,7 +4,7 @@ import { RewriteKeyContext } from './types'
 import { Config } from './Config'
 import { Loader } from './loaders/Loader'
 import { ScopeRange } from '~/frameworks'
-import { regexFindKeys } from '~/utils'
+import { Log, regexFindKeys } from '~/utils'
 import { KeyInDocument, CurrentFile } from '~/core'
 
 export interface KeyUsages {
@@ -49,8 +49,17 @@ export class KeyDetector {
     return keyRange?.key
   }
 
+  private static _scope_range_cache: { fsPath: string; version: number; scopes: ScopeRange[] } | undefined
+
   static getScopedKey(document: TextDocument, position: Position) {
-    const scopes = Global.enabledFrameworks.flatMap(f => f.getScopeRange(document) || [])
+    let scopes: ScopeRange[]
+    const cache = this._scope_range_cache
+    if (cache && cache.fsPath === document.uri.fsPath && cache.version === document.version) {
+      scopes = cache.scopes
+    } else {
+      scopes = Global.enabledFrameworks.flatMap(f => f.getScopeRange(document) || [])
+      this._scope_range_cache = { fsPath: document.uri.fsPath, version: document.version, scopes }
+    }
     if (scopes.length > 0) {
       const offset = document.offsetAt(position)
       return scopes
@@ -77,6 +86,20 @@ export class KeyDetector {
     workspace.onDidChangeTextDocument(
       e => {
         delete this._get_keys_cache[e.document.uri.fsPath]
+      },
+      null,
+      ctx.subscriptions,
+    )
+    workspace.onDidCloseTextDocument(
+      doc => {
+        delete this._get_keys_cache[doc.uri.fsPath]
+      },
+      null,
+      ctx.subscriptions,
+    )
+    workspace.onDidDeleteFiles(
+      e => {
+        e.files.forEach(uri => delete this._get_keys_cache[uri.fsPath])
       },
       null,
       ctx.subscriptions,
@@ -133,7 +156,13 @@ export class KeyDetector {
       if (Global.namespaceEnabled) namespace = loader.getNamespaceFromFilepath(filepath)
 
       locale = localeFile.locale
-      keys = parser.annotationGetKeys(document).filter(({ key }) => loader!.getTreeNodeByKey(key)?.type === 'node')
+      try {
+        keys = parser.annotationGetKeys(document).filter(({ key }) => loader!.getTreeNodeByKey(key)?.type === 'node')
+      } catch (e) {
+        // locale file may be transiently invalid while typing
+        Log.info(`🐛 Failed to parse annotations ${String(e)}`, 2)
+        keys = []
+      }
     }
     // code
     else if (Global.isLanguageIdSupported(document.languageId)) {

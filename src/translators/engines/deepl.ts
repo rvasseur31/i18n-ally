@@ -1,6 +1,7 @@
 import qs from 'qs'
 
 import TranslateEngine, { TranslateOptions, TranslateResult } from './base'
+import { fetchWithTimeout } from './fetch'
 import { Log } from '~/utils'
 import { Config } from '~/core'
 
@@ -51,7 +52,7 @@ async function fetchDeepl<T>(url: string, options: RequestInit & { data?: any } 
     params: { auth_key: Config.deeplApiKey },
   })
 
-  const response = await fetch(fullUrl.toString(), {
+  const response = await fetchWithTimeout(fullUrl.toString(), {
     method,
     headers,
     body,

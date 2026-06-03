@@ -1,5 +1,4 @@
-import fs from 'fs'
-import { workspace, Range, Location, TextDocument, Uri, EventEmitter } from 'vscode'
+import { workspace, Range, Location, TextDocument, Uri, EventEmitter, Disposable } from 'vscode'
 import micromatch from 'micromatch'
 import { Global } from './Global'
 import { CurrentFile } from './CurrentFile'
@@ -22,7 +21,11 @@ export class Analyst {
   }
 
   static watch() {
-    return workspace.onDidSaveTextDocument(doc => this.updateCache(doc))
+    return Disposable.from(
+      workspace.onDidSaveTextDocument(doc => this.updateCache(doc)),
+      workspace.onDidDeleteFiles(e => e.files.forEach(uri => this.invalidateCacheOf(uri.fsPath))),
+      workspace.onDidRenameFiles(e => e.files.forEach(f => this.invalidateCacheOf(f.oldUri.fsPath))),
+    )
   }
 
   static hasCache() {
@@ -46,8 +49,7 @@ export class Analyst {
 
   private static async enumerateDocumentPaths() {
     const root = Global.rootpath
-    const files = await gitignoredGlob(Global.getSupportLangGlob(), root)
-    return files.filter(f => !fs.lstatSync(f).isDirectory())
+    return await gitignoredGlob(Global.getSupportLangGlob(), root)
   }
 
   private static async getOccurrencesOfFile(filepath: string) {
@@ -79,7 +81,13 @@ export class Analyst {
       const occurrences: KeyOccurrence[] = []
       const filepaths = await this.enumerateDocumentPaths()
 
-      for (const filepath of filepaths) occurrences.push(...(await this.getOccurrencesOfFile(filepath)))
+      // open documents in parallel batches to avoid blocking on serial I/O
+      const batchSize = 8
+      for (let i = 0; i < filepaths.length; i += batchSize) {
+        const batch = filepaths.slice(i, i + batchSize)
+        const results = await Promise.all(batch.map(filepath => this.getOccurrencesOfFile(filepath)))
+        for (const result of results) occurrences.push(...result)
+      }
 
       this._cache = occurrences
     }

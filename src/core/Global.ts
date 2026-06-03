@@ -5,6 +5,7 @@ import {
   window,
   EventEmitter,
   Event,
+  Disposable,
   ExtensionContext,
   ConfigurationChangeEvent,
   TextDocument,
@@ -17,20 +18,19 @@ import { ConfigLocalesGuide } from '../commands/configLocalePaths'
 import { AvailableParsers, DefaultEnabledParsers } from '../parsers'
 import { Framework } from '../frameworks/base'
 import { getEnabledFrameworks, getEnabledFrameworksByIds, getPackageDependencies } from '../frameworks'
-import { checkNotification } from '../update-notification'
 import { Reviews } from './Review'
 import { CurrentFile } from './CurrentFile'
 import { Config } from './Config'
 import { DirStructure, OptionalFeatures, KeyStyle } from './types'
 import { LocaleLoader } from './loaders/LocaleLoader'
 import { Analyst } from './Analyst'
-import { Telemetry, TelemetryKey } from './Telemetry'
 import i18n from '~/i18n'
 import { Log, getExtOfLanguageId, normalizeUsageMatchRegex, slash, uniq } from '~/utils'
 import { DetectionResult } from '~/core/types'
 
 export class Global {
   private static _loaders: Record<string, LocaleLoader> = {}
+  private static _loaderListeners: Record<string, Disposable> = {}
   private static _rootpath: string
   private static _enabled = false
   private static _currentWorkspaceFolder: WorkspaceFolder
@@ -62,9 +62,11 @@ export class Global {
   // #region framework settings
   static resetCache() {
     this._cacheUsageMatchRegex = {}
+    this._cacheDerivedKeyRules = undefined
   }
 
   private static _cacheUsageMatchRegex: Record<string, RegExp[]> = {}
+  private static _cacheDerivedKeyRules: RegExp[] | undefined
 
   static getUsageMatchRegex(languageId?: string, filepath?: string): RegExp[] {
     if (Config._regexUsageMatch) {
@@ -78,6 +80,9 @@ export class Global {
     } else {
       const key = `${languageId}_${filepath}`
       if (!this._cacheUsageMatchRegex[key]) {
+        // bound the cache: it is keyed per file (vscode.ts depends on filepath),
+        // so clear it when it grows too large to avoid unbounded memory growth
+        if (Object.keys(this._cacheUsageMatchRegex).length > 500) this._cacheUsageMatchRegex = {}
         this._cacheUsageMatchRegex[key] = normalizeUsageMatchRegex([
           ...this.enabledFrameworks.flatMap(f => f.getUsageMatchRegex(languageId, filepath)),
           ...Config._regexUsageMatchAppend,
@@ -188,15 +193,19 @@ export class Global {
   }
 
   static get derivedKeyRules() {
+    if (this._cacheDerivedKeyRules) return this._cacheDerivedKeyRules
+
     const rules = Config.usageDerivedKeyRules
       ? Config.usageDerivedKeyRules
       : this.enabledFrameworks.flatMap(f => f.derivedKeyRules || [])
 
-    return uniq(rules).map(rule => {
+    this._cacheDerivedKeyRules = uniq(rules).map(rule => {
       const reg = rule.replace(/\./g, '\\.').replace(/{key}/, '(.+)')
 
       return new RegExp(`^${reg}$`)
     })
+
+    return this._cacheDerivedKeyRules
   }
 
   static getDocumentSelectors() {
@@ -267,16 +276,16 @@ export class Global {
   private static async initLoader(rootpath: string, reload = false) {
     if (!rootpath) return
 
-    // if (Config.debug)
-    //  clearNotificationState(this.context)
-    checkNotification(this.context)
-
     if (this._loaders[rootpath] && !reload) return this._loaders[rootpath]
+
+    // dispose the previous loader and its listener for this rootpath before replacing them
+    // (their lifetime is bound to the loader, not to the extension)
+    this._loaderListeners[rootpath]?.dispose()
+    this._loaders[rootpath]?.dispose()
 
     const loader = new LocaleLoader(rootpath)
     await loader.init()
-    this.context.subscriptions.push(loader.onDidChange(() => this._onDidChangeLoader.fire(loader)))
-    this.context.subscriptions.push(loader)
+    this._loaderListeners[rootpath] = loader.onDidChange(() => this._onDidChangeLoader.fire(loader))
     this._loaders[rootpath] = loader
 
     return this._loaders[rootpath]
@@ -370,8 +379,6 @@ export class Global {
       Log.info('')
       commands.executeCommand('setContext', 'i18n-ally.extract.autoDetect', Config.extractAutoDetect)
 
-      Telemetry.track(TelemetryKey.Enabled)
-
       await this.initLoader(this._rootpath, reload)
     } else {
       if (!Config.disabled) {
@@ -387,7 +394,9 @@ export class Global {
   }
 
   private static unloadAll() {
+    Object.values(this._loaderListeners).forEach(listener => listener.dispose())
     Object.values(this._loaders).forEach(loader => loader.dispose())
+    this._loaderListeners = {}
     this._loaders = {}
   }
 

@@ -45,15 +45,17 @@ export abstract class Loader extends Disposable {
   }
 
   getCoverage(locale: string, keys?: string[]): Coverage | undefined {
-    const allKeys = keys || this.keys
-    allKeys.sort()
-    const translatedKeys = allKeys.filter(
-      key => this.flattenLocaleTree[key] && this.flattenLocaleTree[key].getValue(locale),
-    )
-    const missingKeys = allKeys.filter(
-      key => !this.flattenLocaleTree[key] || this.flattenLocaleTree[key].getValue(locale) == null,
-    )
-    const emptyKeys = allKeys.filter(key => !translatedKeys.includes(key) && !missingKeys.includes(key))
+    const allKeys = [...(keys || this.keys)].sort()
+    const translatedKeys: string[] = []
+    const missingKeys: string[] = []
+    const emptyKeys: string[] = []
+    for (const key of allKeys) {
+      const node = this.flattenLocaleTree[key]
+      const value = node ? node.getValue(locale) : undefined
+      if (!node || value == null) missingKeys.push(key)
+      else if (value) translatedKeys.push(key)
+      else emptyKeys.push(key)
+    }
     const total = allKeys.length
     const translated = translatedKeys.length
     const missing = missingKeys.length

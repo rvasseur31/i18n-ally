@@ -128,7 +128,7 @@ const annotation: ExtensionModule = ctx => {
       } else {
         // using inplace annotation and have insection to the cursor, disabled annotation
         if (
-          Config.annotationInPlace &&
+          annotationInPlace &&
           ((selection.start.line <= range.start.line && range.start.line <= selection.end.line) ||
             (selection.start.line <= range.end.line && range.end.line <= selection.end.line))
         ) {
@@ -230,20 +230,30 @@ const annotation: ExtensionModule = ctx => {
   )
 
   // hover
-  languages.registerHoverProvider('*', {
-    provideHover(document, position) {
-      if (document !== _current_doc || !_current_usages) return
+  disposables.push(
+    languages.registerHoverProvider('*', {
+      provideHover(document, position) {
+        if (document !== _current_doc || !_current_usages) return
 
-      const offset = document.offsetAt(position)
-      const key = _current_usages.keys.find(k => k.start <= offset && k.end >= offset)
-      if (!key) return
+        const offset = document.offsetAt(position)
+        const keys = _current_usages.keys
+        let index = -1
+        for (let i = 0; i < keys.length; i++) {
+          if (keys[i].start <= offset && keys[i].end >= offset) {
+            index = i
+            break
+          }
+        }
+        if (index === -1) return
+        const key = keys[index]
 
-      const markdown = createHover(key.key, Config.annotationMaxLength, undefined, _current_usages.keys.indexOf(key))
-      if (!markdown) return
+        const markdown = createHover(key.key, Config.annotationMaxLength, undefined, index)
+        if (!markdown) return
 
-      return new Hover(markdown, new Range(document.positionAt(key.start), document.positionAt(key.end)))
-    },
-  })
+        return new Hover(markdown, new Range(document.positionAt(key.start), document.positionAt(key.end)))
+      },
+    }),
+  )
 
   update()
 
