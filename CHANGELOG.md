@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.16.0](https://github.com/rvasseur31/i18n-ally/compare/v2.15.2...v2.16.0) (2026-06-18)
+
+
+### 🐞 Bug Fixes
+
+* namespace locale loading and restore green lint/test suites ([0cdc731](https://github.com/rvasseur31/i18n-ally/commit/0cdc731556bbb073c6ec64cc57e306f182eca623))
+
 ### 2.15.2 (2026-06-03)
 
 
