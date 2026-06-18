@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import { resolve, join } from 'path'
 import { runTests } from '@vscode/test-electron'
-import fg from 'fast-glob'
+import { glob } from 'tinyglobby'
 import fs from 'fs-extra'
 import chalk from 'chalk'
 
@@ -20,7 +20,7 @@ async function main() {
 
   const frameworks = args.length
     ? args
-    : await fg('*', { onlyDirectories: true, cwd: testFrameworksDir })
+    : (await glob('*', { onlyDirectories: true, cwd: testFrameworksDir, expandDirectories: false })).map(p => p.replace(/\/+$/, ''))
 
   try {
     for (const framework of frameworks) {
@@ -32,9 +32,9 @@ async function main() {
       await fs.copy(fixtureSourcePath, fixtureTargetPath)
 
       await runTests({
-        extensionDevelopmentPath,
+        extensionDevelopmentPath: [extensionDevelopmentPath, join(root, 'test/lang-support')],
         extensionTestsPath,
-        version: '1.77.3',
+        version: '1.125.0',
         launchArgs: [fixtureTargetPath, '--disable-extensions'],
       })
 

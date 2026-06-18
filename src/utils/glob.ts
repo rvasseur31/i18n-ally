@@ -1,30 +1,15 @@
-import { resolve, join } from 'path'
-import fs from 'fs-extra'
-// @ts-expect-error
-import { glob } from 'glob-gitignore'
-// @ts-expect-error
-import parseGitIgnore from 'parse-gitignore'
-import { Config } from '../core/Config'
-import { Global } from '../core/Global'
-import { Log } from './Log'
+import { glob as tinyGlob, globSync as tinyGlobSync, type GlobOptions } from 'tinyglobby'
 
-export async function gitignoredGlob(globStr: string, dir: string) {
-  const root = Global.rootpath
-  const gitignorePath = join(root, '.gitignore')
-  let gitignore = []
-  try {
-    if (fs.existsSync(gitignorePath)) gitignore = parseGitIgnore(await fs.promises.readFile(gitignorePath))
-  } catch (e) {
-    Log.error(e)
-  }
+function compat({ deep, ...rest }: GlobOptions): GlobOptions {
+  return { ...rest, expandDirectories: false, deep: deep === undefined ? undefined : deep - 1 }
+}
 
-  const ignore = ['node_modules', 'dist', ...gitignore, ...(Global.localesPaths || []), ...Config.usageScanningIgnore]
+const stripTrailingSlash = (paths: string[]): string[] => paths.map(p => p.replace(/\/+$/, ''))
 
-  const files = (await glob(globStr, {
-    cwd: dir,
-    ignore,
-    nodir: true,
-  })) as string[]
+export async function glob(patterns: string | string[], options: GlobOptions = {}): Promise<string[]> {
+  return stripTrailingSlash(await tinyGlob(patterns, compat(options)))
+}
 
-  return files.map(f => resolve(dir, f))
+export function globSync(patterns: string | string[], options: GlobOptions = {}): string[] {
+  return stripTrailingSlash(tinyGlobSync(patterns, compat(options)))
 }

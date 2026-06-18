@@ -115,7 +115,7 @@ export class Config {
   }
 
   static get annotations(): boolean {
-    return this.getConfig<boolean>('annotations') ?? true
+    return this.getConfig<boolean>('annotations') ?? false
   }
 
   static set annotations(value: boolean) {
@@ -374,7 +374,7 @@ export class Config {
   }
 
   static get reviewEnabled() {
-    return this.getConfig<boolean>('review.enabled') ?? true
+    return this.getConfig<boolean>('review.enabled') ?? false
   }
 
   static get reviewGutters() {

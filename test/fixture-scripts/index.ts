@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import { dirname, join, basename, resolve } from 'path'
 import { runTests } from '@vscode/test-electron'
-import fg from 'fast-glob'
+import { glob } from 'tinyglobby'
 import fs from 'fs-extra'
 import { red, green, yellow, gray, cyan } from 'chalk'
 import { ArrayChange, diffArrays } from 'diff'
@@ -25,9 +25,10 @@ export interface FixtureInfo {
 
 export async function listAll(): Promise<FixtureInfo[]> {
   const root = 'test/fixtures/'
-  const inputs = await fg(`${root}**/input`, {
+  const inputs = (await glob(`${root}**/input`, {
     onlyDirectories: true,
-  })
+    expandDirectories: false,
+  })).map(p => p.replace(/\/+$/, ''))
 
   return inputs.map(input => ({
     dirInput: input,
@@ -69,7 +70,7 @@ async function run() {
     process.exit(1)
 }
 
-let vscodeExecutablePath: string
+let vscodeExecutablePath: string | undefined
 
 async function testFixture(fixture: FixtureInfo) {
   const root = resolve(__dirname, '../..')
@@ -77,7 +78,7 @@ async function testFixture(fixture: FixtureInfo) {
 
   try {
     await runTests({
-      extensionDevelopmentPath: root,
+      extensionDevelopmentPath: [root, join(root, 'test/lang-support')],
       extensionTestsPath: join(__dirname, 'runner.js'),
       vscodeExecutablePath,
       launchArgs: [path, '--disable-extensions'],
@@ -111,7 +112,7 @@ async function testFixture(fixture: FixtureInfo) {
 }
 
 async function compareOut(target: string, out: string) {
-  const files = await fg('**/*.*', { onlyFiles: true, cwd: target })
+  const files = await glob('**/*.*', { onlyFiles: true, cwd: target })
   return await Promise.all(files.map(async(file) => {
     const path = join(out, file)
     if (!fs.existsSync(path))

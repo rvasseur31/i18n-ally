@@ -29,6 +29,10 @@ export class Reviews {
 
   init(rootpath: string) {
     this._fileWatcher?.dispose()
+    this._fileWatcher = undefined
+
+    if (!Config.reviewEnabled) return
+
     this.filepath = path.join(rootpath, '.vscode/i18n-ally-reviews.yml')
 
     this._fileWatcher = workspace.createFileSystemWatcher(this.filepath)

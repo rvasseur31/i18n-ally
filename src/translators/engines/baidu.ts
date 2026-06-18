@@ -1,5 +1,4 @@
 import { createHash } from 'crypto'
-import qs from 'qs'
 import TranslateEngine, { TranslateOptions, TranslateResult } from './base'
 import { fetchWithTimeout } from './fetch'
 import { Config } from '~/core'
@@ -35,8 +34,13 @@ export default class BaiduTranslate extends TranslateEngine {
       sign,
     }
 
+    const params = new URLSearchParams()
+    for (const [key, value] of Object.entries(form)) {
+      if (value != null) params.append(key, String(value))
+    }
+
     const response = await fetchWithTimeout(
-      `${this.apiRoot}/api/trans/vip/translate?${qs.stringify(form)}`,
+      `${this.apiRoot}/api/trans/vip/translate?${params.toString()}`,
       {
         method: 'GET',
       },

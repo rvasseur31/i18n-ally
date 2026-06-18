@@ -8,7 +8,7 @@ import { Config, Global } from '~/core'
 import { parseHardString } from '~/extraction/parseHardString'
 import { DetectionResultToExtraction } from '~/editor/extract'
 import { Log, notNullish } from '~/utils'
-import { gitignoredGlob } from '~/utils/glob'
+import { gitignoredGlob } from '~/utils/gitignoredGlob'
 
 export async function BatchHardStringExtraction(...args: any[]) {
   const documents: (TextDocument | undefined)[] = []

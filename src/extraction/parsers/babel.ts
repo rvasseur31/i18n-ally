@@ -1,10 +1,21 @@
-import { parse } from '@babel/parser'
-// @ts-ignore
-import traverse from '@babel/traverse'
 import { DefaultDynamicExtractionsRules, DefaultExtractionRules, ExtractionRule } from '../rules'
 import { shouldExtract } from '../shouldExtract'
 import { ExtractionBabelOptions } from './options'
 import { DetectionResult } from '~/core/types'
+
+let parse: typeof import('@babel/parser').parse | undefined
+let traverse: any
+
+export async function load() {
+  if (parse && traverse) return
+  const [parser, traverseModule] = await Promise.all([
+    import('@babel/parser'),
+    // @ts-ignore
+    import('@babel/traverse'),
+  ])
+  parse = parser.parse
+  traverse = (traverseModule as any).default
+}
 
 const defaultOptions: Required<ExtractionBabelOptions> = {
   ignoredJSXAttributes: ['class', 'className', 'key', 'style', 'ref', 'onClick'],
@@ -20,6 +31,8 @@ export function detect(
   const { ignoredJSXAttributes } = Object.assign({}, defaultOptions, userOptions)
 
   const detections: DetectionResult[] = []
+
+  if (!parse || !traverse) throw new Error('[i18n-ally] extraction parser not loaded, call load() first')
 
   const ast = parse(input, {
     sourceType: 'unambiguous',

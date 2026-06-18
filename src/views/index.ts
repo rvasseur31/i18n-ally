@@ -1,5 +1,6 @@
 import { window } from 'vscode'
 import { ExtensionModule } from '~/modules'
+import { Analyst } from '~/core'
 import { ViewIds } from './ViewIds'
 import {
   CurrentFileLocalesTreeProvider,
@@ -38,16 +39,20 @@ const m: ExtensionModule = ctx => {
   })
 
   const usageReportProvider = new UsageReportProvider(ctx)
-  usageReportProvider.view = window.createTreeView(ViewIds.usage, {
+  const usageView = window.createTreeView(ViewIds.usage, {
     treeDataProvider: usageReportProvider,
     showCollapseAll: true,
+  })
+  usageReportProvider.view = usageView
+  const usageVisibility = usageView.onDidChangeVisibility(e => {
+    if (!e.visible) Analyst.invalidateCache()
   })
 
   const feedbackView = window.createTreeView(ViewIds.feedback, {
     treeDataProvider: new HelpFeedbackProvider(ctx),
   })
 
-  return [fileInExplorerView, fileView, progressView, treeView, usageReportProvider.view, feedbackView]
+  return [fileInExplorerView, fileView, progressView, treeView, usageView, usageVisibility, feedbackView]
 }
 
 export default m

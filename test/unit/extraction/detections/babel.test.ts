@@ -1,13 +1,17 @@
 import { basename } from 'path'
 import { promises as fs } from 'fs'
-import fg from 'fast-glob'
+import { globSync } from '../../../../src/utils/glob'
 import { expect } from 'chai'
 import { extractionsParsers } from '../../../../src/extraction'
 
 const babel = extractionsParsers.babel
 
 describe('detections - babel', () => {
-  const files = fg.sync('../../../fixtures/vue/scripts/*.*', {
+  before(async() => {
+    await babel.load()
+  })
+
+  const files = globSync('../../../fixtures/vue/scripts/*.*', {
     cwd: __dirname,
     absolute: true,
   })

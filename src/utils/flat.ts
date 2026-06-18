@@ -34,4 +34,5 @@ export function setValue(obj: any, path: string | string[], value: any) {
     current = current[key]
   }
   current[keys[keys.length - 1]] = value
+  return obj
 }

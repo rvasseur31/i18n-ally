@@ -1,5 +1,3 @@
-import qs from 'qs'
-
 import TranslateEngine, { TranslateOptions, TranslateResult } from './base'
 import { fetchWithTimeout } from './fetch'
 import { Log } from '~/utils'
@@ -27,7 +25,7 @@ function log(inspector: boolean, ...args: any[]): void {
   }
 }
 
-async function fetchDeepl<T>(url: string, options: RequestInit & { data?: any } = {}) {
+async function fetchDeepl<T>(url: string, options: RequestInit & { data?: Record<string, string | number | boolean | undefined> } = {}) {
   const baseURL = Config.deeplUseFreeApiEntry ? 'https://api-free.deepl.com/v2' : 'https://api.deepl.com/v2'
 
   const fullUrl = new URL(url.startsWith('/') ? url.slice(1) : url, `${baseURL}/`)
@@ -41,7 +39,13 @@ async function fetchDeepl<T>(url: string, options: RequestInit & { data?: any } 
 
   if (method.toUpperCase() === 'POST') {
     headers.append('Content-Type', 'application/x-www-form-urlencoded')
-    if (options.data) body = qs.stringify(options.data)
+    if (options.data) {
+      const params = new URLSearchParams()
+      for (const [key, value] of Object.entries(options.data)) {
+        if (value != null) params.append(key, String(value))
+      }
+      body = params.toString()
+    }
   }
 
   log(true, {

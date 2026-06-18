@@ -1,0 +1,20 @@
+{
+  "name": "i18n-ally-test-lang-support",
+  "version": "0.0.1",
+  "private": true,
+  "engines": {
+    "vscode": "^1.77.0"
+  },
+  "contributes": {
+    "languages": [
+      {
+        "id": "vue",
+        "extensions": [".vue"]
+      },
+      {
+        "id": "svelte",
+        "extensions": [".svelte"]
+      }
+    ]
+  }
+}

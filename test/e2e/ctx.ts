@@ -16,7 +16,7 @@ export function timeout(ms = 1000) {
 }
 
 export function getExt() {
-  return extensions.getExtension('lokalise.i18n-ally')!
+  return extensions.getExtension('rvasseur31.i18n-ally')!
 }
 
 export async function openFile(name: string) {
@@ -30,7 +30,7 @@ export function setupTest(name: string, fn: () => void) {
       Snapshot.resetSnapshotRegistry()
     })
 
-    beforeEach(function() {
+    beforeEach(function () {
       const { currentTest } = this
       Snapshot.setFilename(`${currentTest!.file!.replace('e2e-out', 'e2e')}.snap`)
       Snapshot.setTestName(currentTest!.fullTitle())

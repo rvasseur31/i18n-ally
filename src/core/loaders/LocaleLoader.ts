@@ -1,9 +1,9 @@
 import path from 'path'
 import { workspace, window, WorkspaceEdit, RelativePattern } from 'vscode'
-import fg from 'fast-glob'
+import { glob } from '~/utils/glob'
 import throttle from 'lodash.throttle'
 import fs from 'fs-extra'
-import { findBestMatch } from 'string-similarity'
+import Fuse from 'fuse.js'
 import { FILEWATCHER_TIMEOUT } from '../../meta'
 import { ParsedFile, PendingWrite, DirStructure, TargetPickingStrategy } from '../types'
 import { LocaleTree } from '../Nodes'
@@ -136,7 +136,7 @@ export class LocaleLoader extends Loader {
 
     const dir = this._locale_dirs[0]
 
-    const dirnames = await fg('*', {
+    const dirnames = await glob('*', {
       onlyDirectories: true,
       cwd: dir,
       deep: 1,
@@ -259,7 +259,8 @@ export class LocaleLoader extends Loader {
   }
 
   findBestMatchFile(fromPath: string, paths: string[]): string {
-    return findBestMatch(fromPath, paths).bestMatch.target
+    const fuse = new Fuse(paths, { ignoreLocation: true, threshold: 1 })
+    return fuse.search(fromPath)[0]?.item ?? paths[0]
   }
 
   async write(pendings: PendingWrite | PendingWrite[]) {
@@ -474,7 +475,7 @@ export class LocaleLoader extends Loader {
   }
 
   private async loadDirectory(searchingPath: string) {
-    const files = await fg('**/*.*', {
+    const files = await glob('**/*.*', {
       cwd: searchingPath,
       onlyFiles: true,
       ignore: ['node_modules/**', 'vendors/**', ...Config.ignoreFiles],
@@ -604,7 +605,7 @@ export class LocaleLoader extends Loader {
     const localesPaths = this.localesPaths
     if (localesPaths?.length) {
       try {
-        const _locale_dirs = await fg(localesPaths, {
+        const _locale_dirs = await glob(localesPaths, {
           cwd: this.rootpath,
           onlyDirectories: true,
         })

@@ -8,6 +8,7 @@ import reference from './reference'
 import statusbar from './statusbar'
 import reviewComments from './reviewComments'
 import { ExtensionModule } from '~/modules'
+import { Config } from '~/core'
 
 const m: ExtensionModule = ctx => {
   return [
@@ -19,7 +20,7 @@ const m: ExtensionModule = ctx => {
     problems(ctx),
     reference(ctx),
     statusbar(ctx),
-    reviewComments(ctx),
+    ...(Config.reviewEnabled ? [reviewComments(ctx)] : []),
   ].flat()
 }
 

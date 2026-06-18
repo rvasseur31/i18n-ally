@@ -5,7 +5,7 @@ import { CurrentFile } from './CurrentFile'
 import { UsageReport } from './types'
 import { KeyDetector, Config, KeyOccurrence, KeyUsage } from '.'
 import { Log, uniq } from '~/utils'
-import { gitignoredGlob } from '~/utils/glob'
+import { gitignoredGlob } from '~/utils/gitignoredGlob'
 
 export class Analyst {
   private static _cache: KeyOccurrence[] | null = null

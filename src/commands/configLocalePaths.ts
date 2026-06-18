@@ -1,6 +1,6 @@
 import path from 'path'
 import { Uri, workspace, window, commands } from 'vscode'
-import fg from 'fast-glob'
+import { glob } from '~/utils/glob'
 import { Commands } from './commands'
 import { ExtensionModule } from '~/modules'
 import { Config } from '~/core'
@@ -54,7 +54,7 @@ export class ConfigLocalesGuide {
     if (!rootPath) return
 
     const pattern = ['**/**/(locales|locale|i18n|lang|langs|language|languages|messages)']
-    const result: string[] = await fg(pattern, {
+    const result: string[] = await glob(pattern, {
       cwd: rootPath,
       ignore: [
         '**/node_modules',

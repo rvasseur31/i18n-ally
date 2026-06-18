@@ -1,6 +1,6 @@
 import path from 'path'
 import Mocha from 'mocha'
-import fg from 'fast-glob'
+import { globSync } from 'tinyglobby'
 import { window } from 'vscode'
 
 export function createRunner(dir: string) {
@@ -12,7 +12,7 @@ export function createRunner(dir: string) {
       timeout: 20_000,
     })
     const root = path.resolve(dir)
-    const files = fg.sync('*.test.js', { cwd: root })
+    const files = globSync('*.test.js', { cwd: root })
     files.forEach(f => mocha.addFile(path.resolve(root, f)))
 
     window.showInformationMessage('Tests started.')
